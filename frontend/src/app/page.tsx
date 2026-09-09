@@ -1,10 +1,9 @@
-﻿import Link from "next/link";
+import Link from "next/link";
 import { Trophy, ShieldCheck, Building2, Calendar, Sparkles } from "lucide-react";
 
 export default function Home() {
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-between font-sans">
-      {/* Header */}
       <header className="border-b border-slate-800/80 px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="h-10 w-10 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
@@ -17,7 +16,6 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Hero / Portal Selector */}
       <main className="max-w-5xl mx-auto px-6 py-12 text-center space-y-10">
         <div className="space-y-3">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-semibold">
@@ -31,7 +29,6 @@ export default function Home() {
           </p>
         </div>
 
-        {/* Roles Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
           {/* Super Admin */}
           <Link
@@ -53,18 +50,23 @@ export default function Home() {
           </Link>
 
           {/* Club Owner */}
-          <div className="p-6 rounded-2xl bg-slate-900/40 border border-slate-800/60 relative opacity-70">
-            <div className="p-3 bg-blue-500/10 rounded-xl text-blue-400 border border-blue-500/20 w-fit mb-4">
+          <Link
+            href="/owner"
+            className="group block p-6 rounded-2xl bg-slate-900/80 border border-slate-800 hover:border-blue-500/50 hover:bg-slate-900 transition relative overflow-hidden shadow-xl"
+          >
+            <div className="p-3 bg-blue-500/10 rounded-xl text-blue-400 border border-blue-500/20 w-fit mb-4 group-hover:scale-110 transition">
               <Building2 className="h-6 w-6" />
             </div>
-            <h3 className="font-bold text-lg text-white">2. Dueño del Complejo</h3>
+            <h3 className="font-bold text-lg text-white group-hover:text-blue-400 transition">
+              2. Dueño del Complejo
+            </h3>
             <p className="text-xs text-slate-400 mt-2 leading-relaxed">
-              Grilla de turnos diaria, creación de pistas hasta su cupo máximo, tarifas y caja.
+              Grilla de turnos interactiva, gestión de canchas con límite de cupo, caja de señas y contacto al jugador por WhatsApp.
             </p>
-            <span className="inline-block mt-4 text-xs font-semibold text-slate-500">
-              (Siguiente paso)
+            <span className="inline-block mt-4 text-xs font-semibold text-blue-400">
+              Entrar al panel del club →
             </span>
-          </div>
+          </Link>
 
           {/* Player / Public */}
           <div className="p-6 rounded-2xl bg-slate-900/40 border border-slate-800/60 relative opacity-70">
@@ -82,7 +84,6 @@ export default function Home() {
         </div>
       </main>
 
-      {/* Footer */}
       <footer className="border-t border-slate-900 px-6 py-4 text-center text-xs text-slate-500">
         PadelSaaS © 2026 — Diseñado con Next.js, TypeScript y TailwindCSS.
       </footer>
