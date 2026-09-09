@@ -4,7 +4,7 @@ import { pgPool } from '../db';
 
 const router = Router();
 
-// GET /api/clubs
+// GET /api/clubs - List all clubs
 router.get('/', async (_req: Request, res: Response) => {
   try {
     const result = await pgPool.query('SELECT * FROM clubs ORDER BY created_at DESC');
@@ -15,7 +15,79 @@ router.get('/', async (_req: Request, res: Response) => {
   }
 });
 
-// POST /api/clubs
+// GET /api/clubs/:idOrSlug - Get single club
+router.get('/:idOrSlug', async (req: Request, res: Response) => {
+  const { idOrSlug } = req.params;
+  try {
+    const result = await pgPool.query(
+      'SELECT * FROM clubs WHERE id::text = $1 OR slug = $1',
+      [idOrSlug]
+    );
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Club no encontrado' });
+    }
+    res.json(result.rows[0]);
+  } catch (e: any) {
+    console.error('Error fetching club:', e);
+    res.status(500).json({ error: 'Failed to fetch club' });
+  }
+});
+
+// PUT /api/clubs/:id - Update club customization (hours, pricing, light)
+router.put('/:id', async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const {
+    open_time,
+    close_time,
+    slot_duration_min,
+    price_day,
+    price_night,
+    light_start_time,
+    deposit_amount,
+    phone,
+    city
+  } = req.body;
+
+  try {
+    const result = await pgPool.query(
+      `UPDATE clubs
+       SET open_time = COALESCE($1, open_time),
+           close_time = COALESCE($2, close_time),
+           slot_duration_min = COALESCE($3, slot_duration_min),
+           price_day = COALESCE($4, price_day),
+           price_night = COALESCE($5, price_night),
+           light_start_time = COALESCE($6, light_start_time),
+           deposit_amount = COALESCE($7, deposit_amount),
+           phone = COALESCE($8, phone),
+           city = COALESCE($9, city)
+       WHERE id::text = $10 OR slug = $10
+       RETURNING *`,
+      [
+        open_time,
+        close_time,
+        slot_duration_min ? Number(slot_duration_min) : null,
+        price_day ? Number(price_day) : null,
+        price_night ? Number(price_night) : null,
+        light_start_time,
+        deposit_amount ? Number(deposit_amount) : null,
+        phone,
+        city,
+        id
+      ]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Club no encontrado' });
+    }
+
+    res.json({ message: 'Configuración actualizada con éxito', club: result.rows[0] });
+  } catch (e: any) {
+    console.error('Error updating club:', e);
+    res.status(500).json({ error: e.message || 'Error al actualizar configuración' });
+  }
+});
+
+// POST /api/clubs - Create new club
 router.post('/', async (req: Request, res: Response) => {
   const { name, clubName, ownerName, owner_name, ownerEmail, owner_email, password, phone, city, maxCourts, max_courts, plan } = req.body;
   const finalName = name || clubName;
@@ -32,7 +104,6 @@ router.post('/', async (req: Request, res: Response) => {
   try {
     let ownerId = null;
 
-    // If owner email provided, create or link user
     if (finalOwnerEmail) {
       const userCheck = await pgPool.query('SELECT id FROM users WHERE LOWER(email) = LOWER($1)', [finalOwnerEmail.trim()]);
       if (userCheck.rows.length > 0) {
@@ -48,8 +119,8 @@ router.post('/', async (req: Request, res: Response) => {
     }
 
     const clubRes = await pgPool.query(
-      `INSERT INTO clubs (name, slug, owner_id, owner_name, owner_email, phone, city, max_courts, plan, status, ai_bot_enabled)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'active', true)
+      `INSERT INTO clubs (name, slug, owner_id, owner_name, owner_email, phone, city, max_courts, plan, status, ai_bot_enabled, open_time, close_time, price_day, price_night, light_start_time, deposit_amount)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'active', true, '14:00', '01:00', 14000, 18000, '18:30', 8000)
        RETURNING *`,
       [finalName, slug, ownerId, finalOwnerName, finalOwnerEmail, phone || '', city || '', finalMaxCourts, plan || 'Pro']
     );
@@ -59,7 +130,6 @@ router.post('/', async (req: Request, res: Response) => {
       await pgPool.query('UPDATE users SET club_id = $1 WHERE id = $2', [newClub.id, ownerId]);
     }
 
-    // Auto-create default courts
     await pgPool.query(
       `INSERT INTO courts (club_id, name, surface, indoor) VALUES
        ($1, 'Cancha 1 (Cristal)', 'Cristal Panorámico', true),

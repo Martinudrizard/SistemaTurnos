@@ -13,6 +13,10 @@ import {
   Flame,
   Sparkles,
   LogOut,
+  DollarSign,
+  Sun,
+  Moon,
+  CheckCircle2,
 } from "lucide-react";
 
 interface Court {
@@ -37,15 +41,16 @@ interface Booking {
   via_bot: boolean;
 }
 
-const TIME_SLOTS = [
-  "14:00 - 15:30",
-  "15:30 - 17:00",
-  "17:00 - 18:30",
-  "18:30 - 20:00",
-  "20:00 - 21:30",
-  "21:30 - 23:00",
-  "23:00 - 00:30",
-];
+interface ClubSettings {
+  id: string;
+  name: string;
+  open_time: string;
+  close_time: string;
+  price_day: number;
+  price_night: number;
+  light_start_time: string;
+  deposit_amount: number;
+}
 
 export default function OwnerDashboard() {
   const [user, setUser] = useState<any>(null);
@@ -53,6 +58,17 @@ export default function OwnerDashboard() {
   const [selectedDate, setSelectedDate] = useState("Hoy, 9 de Septiembre");
   const [courts, setCourts] = useState<Court[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
+  const [clubSettings, setClubSettings] = useState<ClubSettings>({
+    id: "",
+    name: "Mi Complejo",
+    open_time: "14:00",
+    close_time: "01:00",
+    price_day: 14000,
+    price_night: 18000,
+    light_start_time: "18:30",
+    deposit_amount: 8000,
+  });
+  const [saveMsg, setSaveMsg] = useState("");
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState<{ courtId: string; timeSlot: string } | null>(null);
@@ -86,20 +102,64 @@ export default function OwnerDashboard() {
   const loadClubData = async (clubId: string | null) => {
     try {
       const targetId = clubId || "7edcad2d-6ec3-4d7a-af7a-43bc3aea0ddf";
+      const clubRes = await fetch(`https://padel-saas-backend-production.up.railway.app/api/clubs/${targetId}`);
+      if (clubRes.ok) {
+        const data = await clubRes.json();
+        setClubSettings({
+          id: data.id,
+          name: data.name,
+          open_time: data.open_time || "14:00",
+          close_time: data.close_time || "01:00",
+          price_day: Number(data.price_day) || 14000,
+          price_night: Number(data.price_night) || 18000,
+          light_start_time: data.light_start_time || "18:30",
+          deposit_amount: Number(data.deposit_amount) || 8000,
+        });
+      }
+
       const courtsRes = await fetch(`https://padel-saas-backend-production.up.railway.app/api/courts/${targetId}`);
       if (courtsRes.ok) {
         const courtsData = await courtsRes.json();
         if (courtsData.length > 0) setCourts(courtsData);
       }
+
       const bookingsRes = await fetch(`https://padel-saas-backend-production.up.railway.app/api/reservations?clubId=${targetId}`);
       if (bookingsRes.ok) {
         const bookingsData = await bookingsRes.json();
         setBookings(bookingsData);
       }
     } catch (e) {
-      console.warn("Using fallback local data for owner");
+      console.warn("Using local club data fallback");
     }
   };
+
+  const handleSaveSettings = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaveMsg("");
+    try {
+      const targetId = clubSettings.id || user?.clubId || "7edcad2d-6ec3-4d7a-af7a-43bc3aea0ddf";
+      const res = await fetch(`https://padel-saas-backend-production.up.railway.app/api/clubs/${targetId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(clubSettings),
+      });
+      if (res.ok) {
+        setSaveMsg("¡Tarifas y horarios guardados con éxito en PostgreSQL!");
+      }
+    } catch (err) {
+      setSaveMsg("Configuración guardada localmente");
+    }
+  };
+
+  const TIME_SLOTS = [
+    "14:00 - 15:30",
+    "15:30 - 17:00",
+    "17:00 - 18:30",
+    "18:30 - 20:00",
+    "20:00 - 21:30",
+    "21:30 - 23:00",
+    "23:00 - 00:30",
+  ];
 
   const getBookingForSlot = (courtId: string, timeSlot: string) => {
     return bookings.find((b) => b.court_id === courtId && b.time_slot === timeSlot);
@@ -110,7 +170,16 @@ export default function OwnerDashboard() {
     if (existing) {
       setActiveBookingDetails(existing);
     } else {
+      const isNight = timeSlot >= clubSettings.light_start_time;
+      const autoPrice = isNight ? clubSettings.price_night : clubSettings.price_day;
       setSelectedSlot({ courtId, timeSlot });
+      setBookingFormData({
+        playerName: "",
+        playerPhone: "",
+        price: autoPrice,
+        depositPaid: clubSettings.deposit_amount,
+        isBlocked: false,
+      });
       setIsModalOpen(true);
     }
   };
@@ -119,7 +188,7 @@ export default function OwnerDashboard() {
     e.preventDefault();
     if (!selectedSlot) return;
 
-    const targetClubId = user?.clubId || courts[0]?.club_id || "7edcad2d-6ec3-4d7a-af7a-43bc3aea0ddf";
+    const targetClubId = clubSettings.id || user?.clubId || "7edcad2d-6ec3-4d7a-af7a-43bc3aea0ddf";
     try {
       const res = await fetch("https://padel-saas-backend-production.up.railway.app/api/reservations", {
         method: "POST",
@@ -146,18 +215,11 @@ export default function OwnerDashboard() {
     }
 
     setIsModalOpen(false);
-    setBookingFormData({
-      playerName: "",
-      playerPhone: "",
-      price: 16000,
-      depositPaid: 8000,
-      isBlocked: false,
-    });
   };
 
   const handleAddCourt = async (e: React.FormEvent) => {
     e.preventDefault();
-    const targetClubId = user?.clubId || courts[0]?.club_id || "7edcad2d-6ec3-4d7a-af7a-43bc3aea0ddf";
+    const targetClubId = clubSettings.id || user?.clubId || "7edcad2d-6ec3-4d7a-af7a-43bc3aea0ddf";
     try {
       const res = await fetch("https://padel-saas-backend-production.up.railway.app/api/courts", {
         method: "POST",
@@ -197,9 +259,9 @@ export default function OwnerDashboard() {
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="font-bold text-lg text-white">{user?.clubName || "La Toska Pádel"}</h1>
+                <h1 className="font-bold text-lg text-white">{clubSettings.name}</h1>
                 <span className="text-xs bg-blue-500/20 text-blue-300 border border-blue-500/30 px-2 py-0.5 rounded-full font-semibold">
-                  Panel Dueño ({user?.displayName || "Esteban Rossi"})
+                  Panel Dueño ({user?.displayName || "Administrador"})
                 </span>
               </div>
               <p className="text-xs text-slate-400">{courts.length} pistas en PostgreSQL</p>
@@ -223,6 +285,14 @@ export default function OwnerDashboard() {
                 }`}
               >
                 Mis Canchas ({courts.length})
+              </button>
+              <button
+                onClick={() => setActiveTab("pricing")}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
+                  activeTab === "pricing" ? "bg-blue-600 text-white shadow" : "text-slate-400 hover:text-white"
+                }`}
+              >
+                Tarifas & Horarios
               </button>
             </div>
             <a
@@ -256,16 +326,18 @@ export default function OwnerDashboard() {
           </div>
 
           <div className="bg-slate-900/70 border border-slate-800 p-5 rounded-2xl">
-            <p className="text-xs font-medium text-slate-400">Pistas Habilitadas</p>
-            <h3 className="text-2xl font-bold mt-1 text-white">{courts.length}</h3>
-            <p className="text-xs text-slate-400 mt-1">Autorizadas por Super Admin</p>
+            <p className="text-xs font-medium text-slate-400">Tarifa Diurna / Nocturna</p>
+            <h3 className="text-xl font-bold mt-1 text-white">
+              ${clubSettings.price_day.toLocaleString()} / ${clubSettings.price_night.toLocaleString()}
+            </h3>
+            <p className="text-xs text-slate-400 mt-1">Luz a partir de {clubSettings.light_start_time} hs</p>
           </div>
 
           <div className="bg-slate-900/70 border border-slate-800 p-5 rounded-2xl">
             <p className="text-xs font-medium text-slate-400">Bot IA WhatsApp</p>
             <div className="flex items-center gap-2 mt-1">
-              <span className="h-2.5 w-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
-              <span className="text-sm font-bold text-white">Atendiendo 24/7</span>
+              <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span className="text-sm font-bold text-white">Online 24/7</span>
             </div>
             <p className="text-xs text-slate-400 mt-1">Responde dudas y confirma turnos</p>
           </div>
@@ -296,44 +368,156 @@ export default function OwnerDashboard() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-800/60 text-xs">
-                    {TIME_SLOTS.map((slot) => (
-                      <tr key={slot} className="hover:bg-slate-800/20 transition">
-                        <td className="p-4 font-semibold text-slate-300 border-r border-slate-800/80 bg-slate-950/30 flex items-center gap-1.5">
-                          <Clock className="h-3.5 w-3.5 text-slate-500" /> {slot}
-                        </td>
-                        {courts.map((court) => {
-                          const booking = getBookingForSlot(court.id, slot);
-                          return (
-                            <td key={court.id} className="p-2 border-r border-slate-800/80">
-                              {booking ? (
-                                <button
-                                  onClick={() => handleOpenSlot(court.id, slot)}
-                                  className={`w-full text-left p-3 rounded-xl border transition ${
-                                    booking.status === "blocked"
-                                      ? "bg-red-500/10 border-red-500/30 text-red-300"
-                                      : "bg-emerald-500/10 border-emerald-500/30 text-emerald-300"
-                                  }`}
-                                >
-                                  <div className="font-semibold">{booking.player_name}</div>
-                                  <div className="text-[10px] text-slate-400">Seña: ${Number(booking.deposit_paid).toLocaleString()}</div>
-                                </button>
-                              ) : (
-                                <button
-                                  onClick={() => handleOpenSlot(court.id, slot)}
-                                  className="w-full text-center py-4 rounded-xl border border-dashed border-slate-800 hover:border-blue-500 hover:bg-blue-500/5 text-slate-500 hover:text-blue-400 transition text-xs font-medium"
-                                >
-                                  + Libre
-                                </button>
-                              )}
-                            </td>
-                          );
-                        })}
-                      </tr>
-                    ))}
+                    {TIME_SLOTS.map((slot) => {
+                      const isNightSlot = slot >= clubSettings.light_start_time;
+                      return (
+                        <tr key={slot} className="hover:bg-slate-800/20 transition">
+                          <td className="p-4 font-semibold text-slate-300 border-r border-slate-800/80 bg-slate-950/30 flex items-center justify-between">
+                            <div className="flex items-center gap-1.5">
+                              <Clock className="h-3.5 w-3.5 text-slate-500" /> {slot}
+                            </div>
+                            {isNightSlot ? (
+                              <span className="text-[10px] text-amber-400 flex items-center gap-0.5 font-bold" title="Tarifa con luz">💡 Luz</span>
+                            ) : (
+                              <span className="text-[10px] text-blue-400 flex items-center gap-0.5" title="Tarifa sin luz">☀️ Día</span>
+                            )}
+                          </td>
+                          {courts.map((court) => {
+                            const booking = getBookingForSlot(court.id, slot);
+                            return (
+                              <td key={court.id} className="p-2 border-r border-slate-800/80">
+                                {booking ? (
+                                  <button
+                                    onClick={() => handleOpenSlot(court.id, slot)}
+                                    className={`w-full text-left p-3 rounded-xl border transition ${
+                                      booking.status === "blocked"
+                                        ? "bg-red-500/10 border-red-500/30 text-red-300"
+                                        : "bg-emerald-500/10 border-emerald-500/30 text-emerald-300"
+                                    }`}
+                                  >
+                                    <div className="font-semibold">{booking.player_name}</div>
+                                    <div className="text-[10px] text-slate-400">Seña: ${Number(booking.deposit_paid).toLocaleString()}</div>
+                                  </button>
+                                ) : (
+                                  <button
+                                    onClick={() => handleOpenSlot(court.id, slot)}
+                                    className="w-full text-center py-4 rounded-xl border border-dashed border-slate-800 hover:border-blue-500 hover:bg-blue-500/5 text-slate-500 hover:text-blue-400 transition text-xs font-medium"
+                                  >
+                                    + Libre (${(isNightSlot ? clubSettings.price_night : clubSettings.price_day).toLocaleString()})
+                                  </button>
+                                )}
+                              </td>
+                            );
+                          })}
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
             </div>
+          </div>
+        )}
+
+        {activeTab === "pricing" && (
+          <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 space-y-6 max-w-3xl">
+            <div>
+              <h2 className="text-lg font-bold text-white">Configuración de Horarios, Tarifas & Seña</h2>
+              <p className="text-xs text-slate-400">
+                Personalizá los precios diurnos/nocturnos, el horario de iluminación y el valor de la seña.
+              </p>
+            </div>
+
+            {saveMsg && (
+              <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-semibold flex items-center gap-2">
+                <CheckCircle2 className="h-4 w-4" />
+                <span>{saveMsg}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleSaveSettings} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-xs text-slate-300 flex items-center gap-1.5">
+                    <Sun className="h-3.5 w-3.5 text-amber-400" /> Precio Turno Sin Luz (Diurno)
+                  </label>
+                  <input
+                    type="number"
+                    value={clubSettings.price_day}
+                    onChange={(e) => setClubSettings({ ...clubSettings, price_day: Number(e.target.value) })}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs text-slate-300 flex items-center gap-1.5">
+                    <Moon className="h-3.5 w-3.5 text-blue-400" /> Precio Turno Con Luz (Nocturno)
+                  </label>
+                  <input
+                    type="number"
+                    value={clubSettings.price_night}
+                    onChange={(e) => setClubSettings({ ...clubSettings, price_night: Number(e.target.value) })}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-xs text-slate-300">Hora de inicio de luz artificial</label>
+                  <input
+                    type="text"
+                    placeholder="18:30"
+                    value={clubSettings.light_start_time}
+                    onChange={(e) => setClubSettings({ ...clubSettings, light_start_time: e.target.value })}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs text-slate-300">Monto de Seña para Reservar (MercadoPago)</label>
+                  <input
+                    type="number"
+                    value={clubSettings.deposit_amount}
+                    onChange={(e) => setClubSettings({ ...clubSettings, deposit_amount: Number(e.target.value) })}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-xs text-slate-300">Horario de Apertura</label>
+                  <input
+                    type="text"
+                    placeholder="14:00"
+                    value={clubSettings.open_time}
+                    onChange={(e) => setClubSettings({ ...clubSettings, open_time: e.target.value })}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs text-slate-300">Horario de Cierre</label>
+                  <input
+                    type="text"
+                    placeholder="01:00"
+                    value={clubSettings.close_time}
+                    onChange={(e) => setClubSettings({ ...clubSettings, close_time: e.target.value })}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white"
+                  />
+                </div>
+              </div>
+
+              <div className="pt-4 border-t border-slate-800 flex justify-end">
+                <button
+                  type="submit"
+                  className="bg-blue-600 hover:bg-blue-500 text-white font-bold px-6 py-2.5 rounded-xl text-xs transition shadow-lg shadow-blue-500/20"
+                >
+                  Guardar Configuración en PostgreSQL
+                </button>
+              </div>
+            </form>
           </div>
         )}
 
@@ -419,7 +603,7 @@ export default function OwnerDashboard() {
                 <input
                   required
                   type="text"
-                  placeholder="Cancha 5"
+                  placeholder="Cancha 3 (Cristal)"
                   value={newCourtData.name}
                   onChange={(e) => setNewCourtData({ ...newCourtData, name: e.target.value })}
                   className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white"

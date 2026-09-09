@@ -13,8 +13,10 @@ import {
   Car,
   Wifi,
   Coffee,
-  Share2,
   MessageCircle,
+  Sun,
+  Moon,
+  Zap,
 } from "lucide-react";
 
 interface Club {
@@ -24,6 +26,12 @@ interface Club {
   city: string;
   phone: string;
   max_courts: number;
+  open_time?: string;
+  close_time?: string;
+  price_day?: number;
+  price_night?: number;
+  light_start_time?: string;
+  deposit_amount?: number;
 }
 
 interface Court {
@@ -43,6 +51,7 @@ interface Slot {
   timeSlot: string;
   price: number;
   deposit: number;
+  isNight: boolean;
 }
 
 const DATES = [
@@ -108,7 +117,12 @@ export default function DynamicClubBookingPage() {
     fetchClubAndCourts();
   }, [slugParam]);
 
-  // Generate slots dynamically for the club courts
+  const priceDay = club?.price_day ?? 16000;
+  const priceNight = club?.price_night ?? 20000;
+  const lightStart = club?.light_start_time || "18:00";
+  const depositAmount = club?.deposit_amount ?? 8000;
+
+  // Generate slots dynamically for the club courts with daytime/nighttime pricing
   const generatedSlots: Slot[] = [];
   const activeCourts = courts.length > 0 ? courts : [
     { id: "c1", club_id: club?.id || "default", name: "Cancha 1 (Cristal)", surface: "Cristal Panorámico", indoor: true },
@@ -117,6 +131,10 @@ export default function DynamicClubBookingPage() {
 
   activeCourts.forEach((court, cIdx) => {
     TIME_SLOTS.forEach((ts, tIdx) => {
+      const slotStartTime = ts.split(" a ")[0]; // e.g. "18:30"
+      const isNight = slotStartTime >= lightStart;
+      const slotPrice = isNight ? priceNight : priceDay;
+
       generatedSlots.push({
         id: `slot-${cIdx}-${tIdx}`,
         courtId: court.id,
@@ -124,8 +142,9 @@ export default function DynamicClubBookingPage() {
         surface: court.surface || "Cristal Panorámico",
         indoor: court.indoor ?? true,
         timeSlot: ts,
-        price: 16000,
-        deposit: 8000,
+        price: slotPrice,
+        deposit: depositAmount,
+        isNight,
       });
     });
   });
@@ -158,8 +177,8 @@ export default function DynamicClubBookingPage() {
           player_email: playerForm.email,
           date_str: `${selectedDate.dayName} ${selectedDate.dateStr}`,
           time_slot: selectedSlot?.timeSlot,
-          price: selectedSlot?.price || 16000,
-          deposit: selectedSlot?.deposit || 8000,
+          price: selectedSlot?.price || priceDay,
+          deposit: selectedSlot?.deposit || depositAmount,
         }),
       });
     } catch (e) {
@@ -214,6 +233,29 @@ export default function DynamicClubBookingPage() {
               <div className="flex items-center gap-2 text-xs text-slate-400 mt-1">
                 <MapPin className="h-3.5 w-3.5 text-slate-500" />
                 <span>{clubDisplayCity}</span>
+                <span>•</span>
+                <Clock className="h-3.5 w-3.5 text-slate-500" />
+                <span>{club?.open_time || "08:00"} a {club?.close_time || "01:00"} hs</span>
+              </div>
+            </div>
+
+            {/* Rates Badges */}
+            <div className="flex items-center gap-2 bg-slate-950/80 border border-slate-800 p-2.5 rounded-2xl">
+              <div className="px-3 py-1 text-left border-r border-slate-800">
+                <div className="flex items-center gap-1 text-[11px] text-slate-400">
+                  <Sun className="h-3 w-3 text-amber-400" /> Sin luz
+                </div>
+                <div className="text-sm font-bold text-white">${priceDay.toLocaleString()}</div>
+              </div>
+              <div className="px-3 py-1 text-left border-r border-slate-800">
+                <div className="flex items-center gap-1 text-[11px] text-slate-400">
+                  <Moon className="h-3 w-3 text-indigo-400" /> Con luz (desde {lightStart})
+                </div>
+                <div className="text-sm font-bold text-indigo-300">${priceNight.toLocaleString()}</div>
+              </div>
+              <div className="px-3 py-1 text-left">
+                <div className="text-[11px] text-slate-400">Seña fija</div>
+                <div className="text-sm font-bold text-emerald-400">${depositAmount.toLocaleString()}</div>
               </div>
             </div>
           </div>
@@ -312,6 +354,15 @@ export default function DynamicClubBookingPage() {
                     <span className="text-[10px] bg-slate-800 text-slate-300 px-2 py-0.5 rounded-md font-medium">
                       90 min
                     </span>
+                    {slot.isNight ? (
+                      <span className="inline-flex items-center gap-1 text-[10px] bg-indigo-500/10 text-indigo-300 border border-indigo-500/30 px-2 py-0.5 rounded-md font-medium">
+                        <Zap className="h-2.5 w-2.5 text-indigo-400" /> Con Luz
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 text-[10px] bg-amber-500/10 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded-md font-medium">
+                        <Sun className="h-2.5 w-2.5 text-amber-400" /> Diurno
+                      </span>
+                    )}
                   </div>
                   <div className="text-xs text-slate-400 mt-1 flex items-center gap-1.5">
                     <span className="text-slate-200 font-medium">{slot.courtName}</span>
@@ -362,6 +413,12 @@ export default function DynamicClubBookingPage() {
                   <div className="flex justify-between">
                     <span className="text-slate-400">Pista:</span>
                     <span className="text-white">{selectedSlot.courtName}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Tarifa:</span>
+                    <span className="text-slate-200">
+                      ${selectedSlot.price.toLocaleString()} ({selectedSlot.isNight ? "Con Luz" : "Sin Luz"})
+                    </span>
                   </div>
                   <div className="flex justify-between border-t border-slate-800/80 pt-1.5">
                     <span className="text-slate-400">Seña MercadoPago:</span>
