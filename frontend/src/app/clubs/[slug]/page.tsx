@@ -292,7 +292,7 @@ export default function DynamicClubBookingPage() {
               }`}
             >
               Descubiertas
-            </button
+            </button>
           </div>
         </div>
 
