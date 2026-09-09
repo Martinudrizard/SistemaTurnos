@@ -17,12 +17,11 @@ router.get('/:clubId', async (req: Request, res: Response) => {
 
 // POST /api/courts - Create new court (checks max_courts quota)
 router.post('/', async (req: Request, res: Response) => {
-  const { club_id, name, surface } = req.body;
+  const { club_id, name, surface, indoor } = req.body;
   if (!club_id || !name) {
-    return res.status(400).json({ error: 'Missing required fields' });
+    return res.status(400).json({ error: 'club_id and name are required' });
   }
   try {
-    // Check club court limit
     const clubResult = await pgPool.query('SELECT max_courts FROM clubs WHERE id = $1', [club_id]);
     if (clubResult.rows.length === 0) {
       return res.status(404).json({ error: 'Club not found' });
@@ -37,18 +36,18 @@ router.post('/', async (req: Request, res: Response) => {
         error: 'Court limit reached',
         maxCourts,
         currentCount,
-        message: 'Límite de pistas alcanzado. Contacte a soporte para ampliar el cupo.',
+        message: `Límite alcanzado (${currentCount}/${maxCourts} canchas). Contactá al Super Admin para ampliar el cupo.`,
       });
     }
 
     const insertResult = await pgPool.query(
-      'INSERT INTO courts (id, club_id, name, surface) VALUES (gen_random_uuid(), $1, $2, $3) RETURNING *',
-      [club_id, name, surface || 'Cristal Panorámico']
+      'INSERT INTO courts (club_id, name, surface, indoor) VALUES ($1, $2, $3, $4) RETURNING *',
+      [club_id, name, surface || 'Cristal Panorámico', indoor ?? true]
     );
     res.status(201).json(insertResult.rows[0]);
-  } catch (e) {
+  } catch (e: any) {
     console.error(e);
-    res.status(500).json({ error: 'Failed to create court' });
+    res.status(500).json({ error: e.message || 'Failed to create court' });
   }
 });
 

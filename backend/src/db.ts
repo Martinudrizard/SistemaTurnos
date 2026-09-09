@@ -1,4 +1,5 @@
 import { Pool } from 'pg';
+import bcrypt from 'bcryptjs';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -22,9 +23,10 @@ CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 CREATE TABLE IF NOT EXISTS users (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     email TEXT UNIQUE NOT NULL,
+    password_hash TEXT,
     display_name TEXT,
     role VARCHAR(20) DEFAULT 'player',
-    firebase_uid TEXT UNIQUE,
+    club_id UUID,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
 );
 
@@ -84,7 +86,7 @@ CREATE TABLE IF NOT EXISTS payments (
 
 export const initDb = async () => {
   if (!process.env.DATABASE_URL) {
-    console.log('⚠️ DATABASE_URL not set. Running in mock memory mode.');
+    console.log('⚠️ DATABASE_URL not set. Running in mock mode.');
     return;
   }
 
@@ -92,19 +94,44 @@ export const initDb = async () => {
     const client = await pgPool.connect();
     console.log('✅ Connected to PostgreSQL database!');
 
-    // Auto-migrate tables
     await client.query(SCHEMA_SQL);
-    console.log('✅ Database schema verified / tables created automatically!');
 
-    // Seed default club if empty
+    // Make sure column password_hash exists on existing tables
+    await client.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS password_hash TEXT;');
+    await client.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS club_id UUID;');
+
+    // Seed default SuperAdmin user if not exists
+    const superAdminEmail = 'admin@padelsaas.com';
+    const checkSuperAdmin = await client.query('SELECT * FROM users WHERE email = $1', [superAdminEmail]);
+    if (checkSuperAdmin.rows.length === 0) {
+      const hash = await bcrypt.hash('admin123', 10);
+      await client.query(
+        'INSERT INTO users (email, password_hash, display_name, role) VALUES ($1, $2, $3, $4)',
+        [superAdminEmail, hash, 'Super Admin', 'superadmin']
+      );
+      console.log('✅ Seeded default Super Admin user (admin@padelsaas.com / admin123)');
+    }
+
+    // Seed default Club Owner if empty
     const clubsCheck = await client.query('SELECT COUNT(*) FROM clubs');
     if (parseInt(clubsCheck.rows[0].count, 10) === 0) {
+      const ownerEmail = 'esteban@latoska.com.ar';
+      const ownerHash = await bcrypt.hash('padel123', 10);
+      
+      const userRes = await client.query(
+        'INSERT INTO users (email, password_hash, display_name, role) VALUES ($1, $2, $3, $4) RETURNING id',
+        [ownerEmail, ownerHash, 'Esteban Rossi', 'owner']
+      );
+      const ownerUserId = userRes.rows[0].id;
+
       const seedClub = await client.query(`
-        INSERT INTO clubs (name, slug, owner_name, owner_email, phone, city, max_courts, plan, status, ai_bot_enabled)
-        VALUES ('La Toska Pádel', 'latoska-er', 'Esteban Rossi', 'esteban@latoska.com.ar', '+54 9 343 555-1234', 'Paraná, Entre Ríos', 4, 'Pro', 'active', true)
+        INSERT INTO clubs (name, slug, owner_id, owner_name, owner_email, phone, city, max_courts, plan, status, ai_bot_enabled)
+        VALUES ('La Toska Pádel', 'latoska-er', '${ownerUserId}', 'Esteban Rossi', '${ownerEmail}', '+54 9 343 555-1234', 'Paraná, Entre Ríos', 4, 'Pro', 'active', true)
         RETURNING id;
       `);
       const clubId = seedClub.rows[0].id;
+
+      await client.query('UPDATE users SET club_id = $1 WHERE id = $2', [clubId, ownerUserId]);
 
       await client.query(`
         INSERT INTO courts (club_id, name, surface, indoor) VALUES
@@ -113,7 +140,7 @@ export const initDb = async () => {
         ('${clubId}', 'Cancha 3', 'Césped Sintético Pro', false),
         ('${clubId}', 'Cancha 4', 'Césped Sintético Pro', false);
       `);
-      console.log('✅ Default club and courts seeded into database!');
+      console.log('✅ Seeded default Club Owner (esteban@latoska.com.ar / padel123)');
     }
 
     client.release();
