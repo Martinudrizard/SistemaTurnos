@@ -18,7 +18,6 @@ import {
   Mail,
   MapPin,
   ExternalLink,
-  Key,
   LogOut,
 } from "lucide-react";
 
@@ -45,7 +44,7 @@ export default function SuperAdminPage() {
   const [msg, setMsg] = useState("");
 
   const [formData, setFormData] = useState({
-    clubName: "",
+    name: "",
     ownerName: "",
     ownerEmail: "",
     password: "",
@@ -77,10 +76,19 @@ export default function SuperAdminPage() {
     setMsg("");
 
     try {
-      const res = await fetch("https://padel-saas-backend-production.up.railway.app/api/auth/register-owner", {
+      const res = await fetch("https://padel-saas-backend-production.up.railway.app/api/clubs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          name: formData.name,
+          owner_name: formData.ownerName,
+          owner_email: formData.ownerEmail,
+          password: formData.password,
+          phone: formData.phone,
+          city: formData.city,
+          max_courts: formData.maxCourts,
+          plan: formData.plan,
+        }),
       });
 
       const result = await res.json();
@@ -88,10 +96,10 @@ export default function SuperAdminPage() {
         throw new Error(result.error || "Error al crear complejo");
       }
 
-      setMsg(`¡Complejo "${formData.clubName}" y usuario creados con éxito!`);
+      setMsg(`¡Complejo "${formData.name}" creado con éxito en PostgreSQL!`);
       setIsCreateModalOpen(false);
       setFormData({
-        clubName: "",
+        name: "",
         ownerName: "",
         ownerEmail: "",
         password: "",
@@ -117,7 +125,7 @@ export default function SuperAdminPage() {
     return matchesSearch && matchesStatus;
   });
 
-  const totalCourtsAllowed = clubs.reduce((acc, c) => acc + (c.max_courts || 4), 0);
+  const totalCourtsAllowed = clubs.reduce((acc, c) => acc + (Number(c.max_courts) || 4), 0);
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 font-sans">
@@ -223,7 +231,7 @@ export default function SuperAdminPage() {
                     <td className="px-4 py-4">
                       <div className="text-slate-200 font-medium">{club.owner_name}</div>
                       <div className="text-slate-400 text-[11px] flex items-center gap-1 mt-0.5">
-                        <Mail className="h-3 w-3 text-slate-500" /> {club.owner_email}
+                        <Mail className="h-3 w-3 text-slate-500" /> {club.owner_email || "-"}
                       </div>
                     </td>
                     <td className="px-4 py-4 font-bold text-white">
@@ -276,8 +284,8 @@ export default function SuperAdminPage() {
                     required
                     type="text"
                     placeholder="Ej: Smash Pádel"
-                    value={formData.clubName}
-                    onChange={(e) => setFormData({ ...formData, clubName: e.target.value })}
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white"
                   />
                 </div>
