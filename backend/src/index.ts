@@ -1,13 +1,16 @@
-// src/index.ts
 import dotenv from 'dotenv';
 dotenv.config();
 
 import { createServer } from './app';
+import { initDb } from './db';
 
-const PORT = process.env.PORT || 4000;
+const PORT = Number(process.env.PORT) || 4000;
 
 const server = createServer();
 
-server.listen(PORT, () => {
-  console.log(`🚀 Backend server running on http://localhost:${PORT}`);
+// Initialize DB connections gracefully
+initDb().catch((err) => console.warn('DB Init Notice:', err.message));
+
+server.listen(PORT, '0.0.0.0', () => {
+  console.log(`🚀 Backend server running on port ${PORT} (0.0.0.0:${PORT})`);
 });
