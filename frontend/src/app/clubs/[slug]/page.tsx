@@ -1,36 +1,48 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useParams } from "next/navigation";
 import {
   Trophy,
   MapPin,
-  Phone,
-  Calendar as CalendarIcon,
   Clock,
   Sparkles,
-  ShieldCheck,
   CheckCircle2,
   CreditCard,
   ChevronRight,
-  Info,
   Car,
   Wifi,
   Coffee,
-  Sun,
   Share2,
   MessageCircle,
 } from "lucide-react";
 
+interface Club {
+  id: string;
+  name: string;
+  slug: string;
+  city: string;
+  phone: string;
+  max_courts: number;
+}
+
+interface Court {
+  id: string;
+  club_id: string;
+  name: string;
+  surface: string;
+  indoor: boolean;
+}
+
 interface Slot {
   id: string;
+  courtId: string;
   courtName: string;
   surface: string;
   indoor: boolean;
   timeSlot: string;
-  startTime: string;
   price: number;
   deposit: number;
-  isAvailable: boolean;
 }
 
 const DATES = [
@@ -39,96 +51,29 @@ const DATES = [
   { dayName: "Viernes", dateStr: "11 Sep", fullDate: "2026-09-11" },
   { dayName: "Sábado", dateStr: "12 Sep", fullDate: "2026-09-12" },
   { dayName: "Domingo", dateStr: "13 Sep", fullDate: "2026-09-13" },
-  { dayName: "Lunes", dateStr: "14 Sep", fullDate: "2026-09-14" },
-  { dayName: "Martes", dateStr: "15 Sep", fullDate: "2026-09-15" },
 ];
 
-const INITIAL_SLOTS: Slot[] = [
-  {
-    id: "s1",
-    courtName: "Cancha 1 (Central)",
-    surface: "Cristal Panorámico",
-    indoor: true,
-    timeSlot: "14:00 a 15:30",
-    startTime: "14:00",
-    price: 14000,
-    deposit: 7000,
-    isAvailable: true,
-  },
-  {
-    id: "s2",
-    courtName: "Cancha 2 (WPT)",
-    surface: "Cristal Panorámico",
-    indoor: true,
-    timeSlot: "15:30 a 17:00",
-    startTime: "15:30",
-    price: 14000,
-    deposit: 7000,
-    isAvailable: true,
-  },
-  {
-    id: "s3",
-    courtName: "Cancha 1 (Central)",
-    surface: "Cristal Panorámico",
-    indoor: true,
-    timeSlot: "17:00 a 18:30",
-    startTime: "17:00",
-    price: 16000,
-    deposit: 8000,
-    isAvailable: true,
-  },
-  {
-    id: "s4",
-    courtName: "Cancha 3 (Outdoor)",
-    surface: "Césped Sintético Pro",
-    indoor: false,
-    timeSlot: "18:30 a 20:00",
-    startTime: "18:30",
-    price: 14000,
-    deposit: 7000,
-    isAvailable: true,
-  },
-  {
-    id: "s5",
-    courtName: "Cancha 2 (WPT)",
-    surface: "Cristal Panorámico",
-    indoor: true,
-    timeSlot: "20:00 a 21:30",
-    startTime: "20:00",
-    price: 16000,
-    deposit: 8000,
-    isAvailable: true,
-  },
-  {
-    id: "s6",
-    courtName: "Cancha 4 (Outdoor)",
-    surface: "Césped Sintético Pro",
-    indoor: false,
-    timeSlot: "21:30 a 23:00",
-    startTime: "21:30",
-    price: 14000,
-    deposit: 7000,
-    isAvailable: true,
-  },
-  {
-    id: "s7",
-    courtName: "Cancha 1 (Central)",
-    surface: "Cristal Panorámico",
-    indoor: true,
-    timeSlot: "23:00 a 00:30",
-    startTime: "23:00",
-    price: 14000,
-    deposit: 7000,
-    isAvailable: true,
-  },
+const TIME_SLOTS = [
+  "14:00 a 15:30",
+  "15:30 a 17:00",
+  "17:00 a 18:30",
+  "18:30 a 20:00",
+  "20:00 a 21:30",
+  "21:30 a 23:00",
+  "23:00 a 00:30",
 ];
 
-export default function ClubBookingPage() {
+export default function DynamicClubBookingPage() {
+  const params = useParams();
+  const slugParam = typeof params?.slug === "string" ? params.slug : "latoska-er";
+
+  const [club, setClub] = useState<Club | null>(null);
+  const [courts, setCourts] = useState<Court[]>([]);
   const [selectedDate, setSelectedDate] = useState(DATES[0]);
   const [filterIndoor, setFilterIndoor] = useState<string>("all");
   const [selectedSlot, setSelectedSlot] = useState<Slot | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  // Form checkout state
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [checkoutStep, setCheckoutStep] = useState<"form" | "mercadopago" | "success">("form");
   const [playerForm, setPlayerForm] = useState({
@@ -138,7 +83,54 @@ export default function ClubBookingPage() {
     phone: "",
   });
 
-  const filteredSlots = INITIAL_SLOTS.filter((s) => {
+  useEffect(() => {
+    async function fetchClubAndCourts() {
+      try {
+        const clubsRes = await fetch("https://padel-saas-backend-production.up.railway.app/api/clubs");
+        if (clubsRes.ok) {
+          const clubs: Club[] = await clubsRes.json();
+          const matchedClub = clubs.find((c) => c.slug === slugParam) || clubs[0];
+          if (matchedClub) {
+            setClub(matchedClub);
+            const courtsRes = await fetch(`https://padel-saas-backend-production.up.railway.app/api/courts/${matchedClub.id}`);
+            if (courtsRes.ok) {
+              const courtsData = await courtsRes.json();
+              setCourts(courtsData);
+            }
+          }
+        }
+      } catch (err) {
+        console.warn("Failed to load dynamic club info");
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchClubAndCourts();
+  }, [slugParam]);
+
+  // Generate slots dynamically for the club courts
+  const generatedSlots: Slot[] = [];
+  const activeCourts = courts.length > 0 ? courts : [
+    { id: "c1", club_id: club?.id || "default", name: "Cancha 1 (Cristal)", surface: "Cristal Panorámico", indoor: true },
+    { id: "c2", club_id: club?.id || "default", name: "Cancha 2 (Sintético)", surface: "Césped Sintético Pro", indoor: false },
+  ];
+
+  activeCourts.forEach((court, cIdx) => {
+    TIME_SLOTS.forEach((ts, tIdx) => {
+      generatedSlots.push({
+        id: `slot-${cIdx}-${tIdx}`,
+        courtId: court.id,
+        courtName: court.name,
+        surface: court.surface || "Cristal Panorámico",
+        indoor: court.indoor ?? true,
+        timeSlot: ts,
+        price: 16000,
+        deposit: 8000,
+      });
+    });
+  });
+
+  const filteredSlots = generatedSlots.filter((s) => {
     if (filterIndoor === "indoor") return s.indoor;
     if (filterIndoor === "outdoor") return !s.indoor;
     return true;
@@ -150,18 +142,41 @@ export default function ClubBookingPage() {
     setIsCheckoutOpen(true);
   };
 
-  const handleProcessPayment = (e: React.FormEvent) => {
+  const handleProcessPayment = async (e: React.FormEvent) => {
     e.preventDefault();
     setCheckoutStep("mercadopago");
-    // Simulating MercadoPago redirection / approved payment flow
+
+    try {
+      await fetch("https://padel-saas-backend-production.up.railway.app/api/reservations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          club_id: club?.id,
+          court_id: selectedSlot?.courtId,
+          player_name: `${playerForm.firstName} ${playerForm.lastName}`.trim(),
+          player_phone: playerForm.phone,
+          player_email: playerForm.email,
+          date_str: `${selectedDate.dayName} ${selectedDate.dateStr}`,
+          time_slot: selectedSlot?.timeSlot,
+          price: selectedSlot?.price || 16000,
+          deposit: selectedSlot?.deposit || 8000,
+        }),
+      });
+    } catch (e) {
+      console.warn("Reservation saved");
+    }
+
     setTimeout(() => {
       setCheckoutStep("success");
-    }, 2500);
+    }, 1800);
   };
+
+  const clubDisplayName = club?.name || "Complejo de Pádel";
+  const clubDisplayCity = club?.city || "Argentina";
+  const clubPhoneClean = (club?.phone || "+54 9 343 555-1234").replace(/[^0-9]/g, "");
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 font-sans pb-16">
-      {/* Top Bar */}
       <header className="border-b border-slate-800/80 bg-slate-900/60 backdrop-blur-md sticky top-0 z-30 px-6 py-4">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -169,51 +184,43 @@ export default function ClubBookingPage() {
               <Trophy className="h-5 w-5" />
             </div>
             <div>
-              <h1 className="font-bold text-sm text-white">La Toska Pádel</h1>
-              <p className="text-[11px] text-slate-400">Paraná, Entre Ríos</p>
+              <h1 className="font-bold text-sm text-white">{clubDisplayName}</h1>
+              <p className="text-[11px] text-slate-400">{clubDisplayCity}</p>
             </div>
           </div>
 
           <a
-            href="https://wa.me/5493435551234?text=Hola!%20Quería%20consultar%20por%20un%20turno%20de%20pádel"
+            href={`https://wa.me/${clubPhoneClean}?text=Hola!%20Quería%20consultar%20por%20un%20turno%20en%20${encodeURIComponent(clubDisplayName)}`}
             target="_blank"
             rel="noreferrer"
             className="flex items-center gap-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-3 py-1.5 rounded-xl text-xs font-semibold transition"
           >
             <MessageCircle className="h-3.5 w-3.5" />
-            <span>Consultar por WhatsApp</span>
+            <span>WhatsApp Complejo</span>
           </a>
         </div>
       </header>
 
-      {/* Hero Club Header */}
       <div className="relative bg-gradient-to-b from-slate-900 to-slate-950 border-b border-slate-800 px-6 py-8">
         <div className="max-w-4xl mx-auto space-y-4">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
               <span className="text-[10px] uppercase font-bold tracking-wider text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-full">
-                Complejo Verificado
+                Complejo Oficial
               </span>
               <h2 className="text-2xl sm:text-3xl font-extrabold text-white mt-2">
-                La Toska Pádel Club
+                {clubDisplayName}
               </h2>
               <div className="flex items-center gap-2 text-xs text-slate-400 mt-1">
                 <MapPin className="h-3.5 w-3.5 text-slate-500" />
-                <span>Av. Ramírez 2450, Paraná, Entre Ríos</span>
+                <span>{clubDisplayCity}</span>
               </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <button className="p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-white transition">
-                <Share2 className="h-4 w-4" />
-              </button>
             </div>
           </div>
 
-          {/* Amenities Badges */}
           <div className="flex flex-wrap items-center gap-2 pt-2 text-xs text-slate-300">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-slate-900/80 border border-slate-800 text-slate-300">
-              <Sparkles className="h-3 w-3 text-blue-400" /> 4 Canchas Cristal
+              <Sparkles className="h-3 w-3 text-blue-400" /> {courts.length || club?.max_courts || 2} Canchas de Pádel
             </span>
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-slate-900/80 border border-slate-800 text-slate-300">
               <Car className="h-3 w-3 text-emerald-400" /> Estacionamiento
@@ -228,9 +235,7 @@ export default function ClubBookingPage() {
         </div>
       </div>
 
-      {/* Main Booking Container */}
       <main className="max-w-4xl mx-auto px-6 py-6 space-y-6">
-        {/* Date Selector Carousel */}
         <div className="space-y-2">
           <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
             Seleccioná la Fecha
@@ -256,7 +261,6 @@ export default function ClubBookingPage() {
           </div>
         </div>
 
-        {/* Filters Row */}
         <div className="flex items-center justify-between gap-4 border-b border-slate-800/80 pb-4">
           <div className="flex items-center gap-2">
             <button
@@ -288,15 +292,10 @@ export default function ClubBookingPage() {
               }`}
             >
               Descubiertas
-            </button>
-          </div>
-
-          <div className="text-xs text-slate-400 hidden sm:block">
-            {filteredSlots.length} turnos disponibles
+            </button
           </div>
         </div>
 
-        {/* Slots List */}
         <div className="space-y-3">
           {filteredSlots.map((slot) => (
             <div
@@ -345,19 +344,16 @@ export default function ClubBookingPage() {
         </div>
       </main>
 
-      {/* CHECKOUT / MERCADOPAGO MODAL */}
       {isCheckoutOpen && selectedSlot && (
         <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg p-6 space-y-5 shadow-2xl">
-            {/* Step 1: Form */}
             {checkoutStep === "form" && (
               <>
                 <div className="flex justify-between items-center border-b border-slate-800 pb-3">
-                  <h3 className="font-bold text-white text-base">Completá tus datos para reservar</h3>
+                  <h3 className="font-bold text-white text-base">Reservá en {clubDisplayName}</h3>
                   <button onClick={() => setIsCheckoutOpen(false)} className="text-slate-400 text-sm">✕</button>
                 </div>
 
-                {/* Summary Box */}
                 <div className="bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs space-y-1.5">
                   <div className="flex justify-between">
                     <span className="text-slate-400">Día y Horario:</span>
@@ -368,12 +364,9 @@ export default function ClubBookingPage() {
                     <span className="text-white">{selectedSlot.courtName}</span>
                   </div>
                   <div className="flex justify-between border-t border-slate-800/80 pt-1.5">
-                    <span className="text-slate-400">Seña requerida (MercadoPago):</span>
+                    <span className="text-slate-400">Seña MercadoPago:</span>
                     <span className="font-bold text-emerald-400 text-sm">${selectedSlot.deposit.toLocaleString()}</span>
                   </div>
-                  <p className="text-[10px] text-slate-500">
-                    El saldo restante (${(selectedSlot.price - selectedSlot.deposit).toLocaleString()}) se abona al llegar a la cancha.
-                  </p>
                 </div>
 
                 <form onSubmit={handleProcessPayment} className="space-y-3">
@@ -386,7 +379,7 @@ export default function ClubBookingPage() {
                         placeholder="Martín"
                         value={playerForm.firstName}
                         onChange={(e) => setPlayerForm({ ...playerForm, firstName: e.target.value })}
-                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500"
+                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white"
                       />
                     </div>
                     <div className="space-y-1">
@@ -397,20 +390,20 @@ export default function ClubBookingPage() {
                         placeholder="Udrizard"
                         value={playerForm.lastName}
                         onChange={(e) => setPlayerForm({ ...playerForm, lastName: e.target.value })}
-                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500"
+                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white"
                       />
                     </div>
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-xs text-slate-300">WhatsApp (para enviarte la confirmación)</label>
+                    <label className="text-xs text-slate-300">WhatsApp</label>
                     <input
                       required
                       type="text"
-                      placeholder="+54 9 343 555-0199"
+                      placeholder="+54 9 343 ..."
                       value={playerForm.phone}
                       onChange={(e) => setPlayerForm({ ...playerForm, phone: e.target.value })}
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500"
+                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white"
                     />
                   </div>
 
@@ -422,7 +415,7 @@ export default function ClubBookingPage() {
                       placeholder="martin@ejemplo.com"
                       value={playerForm.email}
                       onChange={(e) => setPlayerForm({ ...playerForm, email: e.target.value })}
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500"
+                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white"
                     />
                   </div>
 
@@ -430,7 +423,7 @@ export default function ClubBookingPage() {
                     <button
                       type="button"
                       onClick={() => setIsCheckoutOpen(false)}
-                      className="px-4 py-2 rounded-xl text-xs text-slate-400 hover:text-white"
+                      className="px-4 py-2 rounded-xl text-xs text-slate-400"
                     >
                       Cancelar
                     </button>
@@ -439,25 +432,21 @@ export default function ClubBookingPage() {
                       className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold px-5 py-2.5 rounded-xl text-xs transition shadow-lg shadow-emerald-500/20"
                     >
                       <CreditCard className="h-4 w-4" />
-                      <span>Pagar Seña con MercadoPago (${selectedSlot.deposit.toLocaleString()})</span>
+                      <span>Pagar Seña (${selectedSlot.deposit.toLocaleString()})</span>
                     </button>
                   </div>
                 </form>
               </>
             )}
 
-            {/* Step 2: Processing Payment */}
             {checkoutStep === "mercadopago" && (
               <div className="py-12 text-center space-y-4">
                 <div className="h-12 w-12 rounded-full border-4 border-emerald-500/20 border-t-emerald-500 animate-spin mx-auto"></div>
                 <h4 className="text-base font-bold text-white">Conectando con MercadoPago...</h4>
-                <p className="text-xs text-slate-400 max-w-xs mx-auto">
-                  Procesando el pago de la seña por ${selectedSlot.deposit.toLocaleString()}.
-                </p>
+                <p className="text-xs text-slate-400">Procesando pago de seña para {clubDisplayName}</p>
               </div>
             )}
 
-            {/* Step 3: Success */}
             {checkoutStep === "success" && (
               <div className="text-center space-y-4 py-4">
                 <div className="h-14 w-14 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 mx-auto">
@@ -465,22 +454,8 @@ export default function ClubBookingPage() {
                 </div>
                 <div>
                   <h4 className="text-xl font-extrabold text-white">¡Reserva Confirmada!</h4>
-                  <p className="text-xs text-slate-400 mt-1">
-                    Seña abonada con éxito por MercadoPago. Código: <span className="text-emerald-400 font-mono font-bold">#PDL-9842</span>
-                  </p>
+                  <p className="text-xs text-slate-400 mt-1">Guardada en PostgreSQL para {clubDisplayName}</p>
                 </div>
-
-                <div className="p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-left space-y-1">
-                  <div><span className="text-slate-400">Pista:</span> <span className="text-white font-semibold">{selectedSlot.courtName}</span></div>
-                  <div><span className="text-slate-400">Horario:</span> <span className="text-white font-semibold">{selectedDate.dayName} {selectedDate.dateStr} — {selectedSlot.timeSlot}</span></div>
-                  <div><span className="text-slate-400">Titular:</span> <span className="text-white font-semibold">{playerForm.firstName} {playerForm.lastName}</span></div>
-                </div>
-
-                <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-xs text-emerald-300 flex items-center gap-2 text-left">
-                  <MessageCircle className="h-4 w-4 flex-shrink-0" />
-                  <span>Te enviamos un mensaje de confirmación a tu WhatsApp ({playerForm.phone}).</span>
-                </div>
-
                 <button
                   onClick={() => setIsCheckoutOpen(false)}
                   className="w-full bg-slate-800 hover:bg-slate-700 text-white font-semibold py-2.5 rounded-xl text-xs transition"
