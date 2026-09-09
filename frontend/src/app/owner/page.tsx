@@ -4,19 +4,13 @@ import React, { useState, useEffect } from "react";
 import {
   Calendar as CalendarIcon,
   Clock,
-  Plus,
   Building2,
-  ChevronLeft,
-  ChevronRight,
-  ShieldAlert,
-  Phone,
   Flame,
-  Sparkles,
   LogOut,
-  DollarSign,
   Sun,
   Moon,
   CheckCircle2,
+  ShieldCheck,
 } from "lucide-react";
 
 interface Court {
@@ -81,12 +75,6 @@ export default function OwnerDashboard() {
   });
 
   const [activeBookingDetails, setActiveBookingDetails] = useState<Booking | null>(null);
-  const [isAddCourtModalOpen, setIsAddCourtModalOpen] = useState(false);
-  const [newCourtData, setNewCourtData] = useState({
-    name: "",
-    surface: "Cristal Panorámico",
-    indoor: true,
-  });
 
   useEffect(() => {
     const savedUser = localStorage.getItem("padel_user");
@@ -144,7 +132,7 @@ export default function OwnerDashboard() {
         body: JSON.stringify(clubSettings),
       });
       if (res.ok) {
-        setSaveMsg("¡Tarifas y horarios guardados con éxito en PostgreSQL!");
+        setSaveMsg("¡Tarifas y horarios guardados con éxito!");
       }
     } catch (err) {
       setSaveMsg("Configuración guardada localmente");
@@ -217,33 +205,6 @@ export default function OwnerDashboard() {
     setIsModalOpen(false);
   };
 
-  const handleAddCourt = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const targetClubId = clubSettings.id || user?.clubId || "7edcad2d-6ec3-4d7a-af7a-43bc3aea0ddf";
-    try {
-      const res = await fetch("https://padel-saas-backend-production.up.railway.app/api/courts", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          club_id: targetClubId,
-          name: newCourtData.name,
-          surface: newCourtData.surface,
-          indoor: newCourtData.indoor,
-        }),
-      });
-      if (res.ok) {
-        const createdCourt = await res.json();
-        setCourts([...courts, createdCourt]);
-      } else {
-        const errorData = await res.json();
-        alert(errorData.message || "Límite de pistas alcanzado");
-      }
-    } catch (err) {
-      console.warn("Fallback court added");
-    }
-    setIsAddCourtModalOpen(false);
-  };
-
   const totalSlotsCount = (courts.length || 1) * TIME_SLOTS.length;
   const occupiedSlotsCount = bookings.filter((b) => b.status !== "blocked").length;
   const occupationRate = Math.round((occupiedSlotsCount / totalSlotsCount) * 100) || 0;
@@ -264,7 +225,7 @@ export default function OwnerDashboard() {
                   Panel Dueño ({user?.displayName || "Administrador"})
                 </span>
               </div>
-              <p className="text-xs text-slate-400">{courts.length} pistas en PostgreSQL</p>
+              <p className="text-xs text-slate-400">{courts.length} {courts.length === 1 ? "cancha habilitada" : "canchas habilitadas"}</p>
             </div>
           </div>
 
@@ -322,7 +283,7 @@ export default function OwnerDashboard() {
             <h3 className="text-2xl font-bold mt-1 text-emerald-400">
               ${totalIncomeToday.toLocaleString()}
             </h3>
-            <p className="text-xs text-slate-400 mt-1">Registradas en PostgreSQL</p>
+            <p className="text-xs text-slate-400 mt-1">Confirmadas en el sistema</p>
           </div>
 
           <div className="bg-slate-900/70 border border-slate-800 p-5 rounded-2xl">
@@ -514,7 +475,7 @@ export default function OwnerDashboard() {
                   type="submit"
                   className="bg-blue-600 hover:bg-blue-500 text-white font-bold px-6 py-2.5 rounded-xl text-xs transition shadow-lg shadow-blue-500/20"
                 >
-                  Guardar Configuración en PostgreSQL
+                  Guardar Configuración
                 </button>
               </div>
             </form>
@@ -523,17 +484,15 @@ export default function OwnerDashboard() {
 
         {activeTab === "courts" && (
           <div className="space-y-6">
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
-                <h2 className="text-lg font-bold text-white">Pistas en PostgreSQL</h2>
-                <p className="text-xs text-slate-400">Tenés {courts.length} canchas creadas en este complejo.</p>
+                <h2 className="text-lg font-bold text-white">Canchas del Complejo</h2>
+                <p className="text-xs text-slate-400">Tenés {courts.length} canchas activas asignadas a tu complejo.</p>
               </div>
-              <button
-                onClick={() => setIsAddCourtModalOpen(true)}
-                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white font-semibold px-4 py-2 rounded-xl text-xs transition"
-              >
-                <Plus className="h-4 w-4" /> Agregar Cancha
-              </button>
+              <div className="flex items-center gap-2 text-xs text-slate-400 bg-slate-900 border border-slate-800 px-3.5 py-2 rounded-xl">
+                <ShieldCheck className="h-4 w-4 text-blue-400" />
+                <span>Gestión de altas administrada por el Sistema</span>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -541,9 +500,9 @@ export default function OwnerDashboard() {
                 <div key={court.id} className="bg-slate-900/80 border border-slate-800 p-5 rounded-2xl space-y-2">
                   <div className="flex justify-between items-start">
                     <h3 className="font-bold text-white text-base">{court.name}</h3>
-                    <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">Activa</span>
+                    <span className="text-xs px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-medium">Activa</span>
                   </div>
-                  <p className="text-xs text-slate-400">{court.surface}</p>
+                  <p className="text-xs text-slate-400">{court.surface} • {court.indoor ? "Techada" : "Descubierta"}</p>
                 </div>
               ))}
             </div>
@@ -555,7 +514,7 @@ export default function OwnerDashboard() {
         <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-6 space-y-4 shadow-2xl">
             <div className="flex justify-between items-center border-b border-slate-800 pb-3">
-              <h3 className="font-bold text-white text-base">Cargar Reserva en PostgreSQL</h3>
+              <h3 className="font-bold text-white text-base">Cargar Reserva Manual</h3>
               <button onClick={() => setIsModalOpen(false)} className="text-slate-400">✕</button>
             </div>
             <form onSubmit={handleSaveBooking} className="space-y-3">
@@ -587,31 +546,6 @@ export default function OwnerDashboard() {
               <div className="flex justify-end gap-2 pt-3 border-t border-slate-800">
                 <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 text-xs text-slate-400">Cancelar</button>
                 <button type="submit" className="bg-blue-600 hover:bg-blue-500 text-white font-bold px-4 py-2 rounded-xl text-xs">Guardar Reserva</button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {isAddCourtModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-6 space-y-4 shadow-2xl">
-            <h3 className="font-bold text-white text-base">Crear Nueva Cancha</h3>
-            <form onSubmit={handleAddCourt} className="space-y-3">
-              <div className="space-y-1">
-                <label className="text-xs text-slate-300">Nombre Cancha</label>
-                <input
-                  required
-                  type="text"
-                  placeholder="Cancha 3 (Cristal)"
-                  value={newCourtData.name}
-                  onChange={(e) => setNewCourtData({ ...newCourtData, name: e.target.value })}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white"
-                />
-              </div>
-              <div className="flex justify-end gap-2 pt-3">
-                <button type="button" onClick={() => setIsAddCourtModalOpen(false)} className="px-4 py-2 text-xs text-slate-400">Cancelar</button>
-                <button type="submit" className="bg-blue-600 text-white font-bold px-4 py-2 rounded-xl text-xs">Crear</button>
               </div>
             </form>
           </div>

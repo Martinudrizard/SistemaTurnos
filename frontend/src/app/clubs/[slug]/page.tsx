@@ -511,7 +511,7 @@ export default function DynamicClubBookingPage() {
                 </div>
                 <div>
                   <h4 className="text-xl font-extrabold text-white">¡Reserva Confirmada!</h4>
-                  <p className="text-xs text-slate-400 mt-1">Guardada en PostgreSQL para {clubDisplayName}</p>
+                  <p className="text-xs text-slate-400 mt-1">Registrada con éxito en {clubDisplayName}</p>
                 </div>
                 <button
                   onClick={() => setIsCheckoutOpen(false)}
