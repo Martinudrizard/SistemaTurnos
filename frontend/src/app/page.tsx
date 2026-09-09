@@ -69,18 +69,23 @@ export default function Home() {
           </Link>
 
           {/* Player / Public */}
-          <div className="p-6 rounded-2xl bg-slate-900/40 border border-slate-800/60 relative opacity-70">
-            <div className="p-3 bg-purple-500/10 rounded-xl text-purple-400 border border-purple-500/20 w-fit mb-4">
+          <Link
+            href="/reserve"
+            className="group block p-6 rounded-2xl bg-slate-900/80 border border-slate-800 hover:border-purple-500/50 hover:bg-slate-900 transition relative overflow-hidden shadow-xl"
+          >
+            <div className="p-3 bg-purple-500/10 rounded-xl text-purple-400 border border-purple-500/20 w-fit mb-4 group-hover:scale-110 transition">
               <Calendar className="h-6 w-6" />
             </div>
-            <h3 className="font-bold text-lg text-white">3. Vista Jugador / Reserva</h3>
+            <h3 className="font-bold text-lg text-white group-hover:text-purple-400 transition">
+              3. Vista Jugador (Estilo Clubo)
+            </h3>
             <p className="text-xs text-slate-400 mt-2 leading-relaxed">
-              Experiencia moderna tipo Clubo para buscar turnos disponibles y pagar la seña con MercadoPago.
+              Experiencia pública para seleccionar fecha, pista, turno y abonar la seña con MercadoPago.
             </p>
-            <span className="inline-block mt-4 text-xs font-semibold text-slate-500">
-              (Siguiente paso)
+            <span className="inline-block mt-4 text-xs font-semibold text-purple-400">
+              Ver web de reservas →
             </span>
-          </div>
+          </Link>
         </div>
       </main>
 
