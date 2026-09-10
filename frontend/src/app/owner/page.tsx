@@ -11,6 +11,9 @@ import {
   Moon,
   CheckCircle2,
   ShieldCheck,
+  Trash2,
+  MessageCircle,
+  Lock,
 } from "lucide-react";
 
 interface Court {
@@ -28,6 +31,7 @@ interface Booking {
   court_id: string;
   player_name: string;
   player_phone: string;
+  player_email?: string;
   time_slot: string;
   status: string;
   price: number;
@@ -69,8 +73,8 @@ export default function OwnerDashboard() {
   const [bookingFormData, setBookingFormData] = useState({
     playerName: "",
     playerPhone: "",
-    price: 16000,
-    depositPaid: 8000,
+    price: 14000,
+    depositPaid: 0,
     isBlocked: false,
   });
 
@@ -165,7 +169,7 @@ export default function OwnerDashboard() {
         playerName: "",
         playerPhone: "",
         price: autoPrice,
-        depositPaid: clubSettings.deposit_amount,
+        depositPaid: 0, // Default 0 for manual booking by club owner
         isBlocked: false,
       });
       setIsModalOpen(true);
@@ -203,6 +207,20 @@ export default function OwnerDashboard() {
     }
 
     setIsModalOpen(false);
+  };
+
+  const handleDeleteBooking = async (bookingId: string) => {
+    try {
+      const res = await fetch(`https://padel-saas-backend-production.up.railway.app/api/reservations/${bookingId}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        setBookings(bookings.filter((b) => b.id !== bookingId));
+        setActiveBookingDetails(null);
+      }
+    } catch (err) {
+      console.warn("Error deleting booking");
+    }
   };
 
   const totalSlotsCount = (courts.length || 1) * TIME_SLOTS.length;
@@ -311,7 +329,7 @@ export default function OwnerDashboard() {
                 <CalendarIcon className="h-4 w-4 text-blue-400" />
                 <span>{selectedDate}</span>
               </div>
-              <div className="text-xs text-slate-400">Hacé clic en cualquier casillero libre para reservar en vivo</div>
+              <div className="text-xs text-slate-400">Hacé clic en cualquier turno para ver detalles o liberar la pista</div>
             </div>
 
             <div className="bg-slate-900/80 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
@@ -345,6 +363,7 @@ export default function OwnerDashboard() {
                           </td>
                           {courts.map((court) => {
                             const booking = getBookingForSlot(court.id, slot);
+                            const depositNum = Number(booking?.deposit_paid) || 0;
                             return (
                               <td key={court.id} className="p-2 border-r border-slate-800/80">
                                 {booking ? (
@@ -352,12 +371,23 @@ export default function OwnerDashboard() {
                                     onClick={() => handleOpenSlot(court.id, slot)}
                                     className={`w-full text-left p-3 rounded-xl border transition ${
                                       booking.status === "blocked"
-                                        ? "bg-red-500/10 border-red-500/30 text-red-300"
-                                        : "bg-emerald-500/10 border-emerald-500/30 text-emerald-300"
+                                        ? "bg-red-500/10 border-red-500/30 text-red-300 hover:border-red-500/50"
+                                        : "bg-emerald-500/10 border-emerald-500/30 text-emerald-300 hover:border-emerald-500/50"
                                     }`}
                                   >
-                                    <div className="font-semibold">{booking.player_name}</div>
-                                    <div className="text-[10px] text-slate-400">Seña: ${Number(booking.deposit_paid).toLocaleString()}</div>
+                                    <div className="font-semibold flex items-center justify-between">
+                                      <span>{booking.player_name}</span>
+                                      {booking.status === "blocked" && <Lock className="h-3 w-3 text-red-400" />}
+                                    </div>
+                                    <div className="text-[10px] text-slate-400 mt-0.5">
+                                      {booking.status === "blocked" ? (
+                                        "Bloqueado por el club"
+                                      ) : depositNum > 0 ? (
+                                        `Seña: $${depositNum.toLocaleString()}`
+                                      ) : (
+                                        <span className="text-amber-400/90 font-medium">Sin seña (Paga en club)</span>
+                                      )}
+                                    </div>
                                   </button>
                                 ) : (
                                   <button
@@ -385,7 +415,7 @@ export default function OwnerDashboard() {
             <div>
               <h2 className="text-lg font-bold text-white">Configuración de Horarios, Tarifas & Seña</h2>
               <p className="text-xs text-slate-400">
-                Personalizá los precios diurnos/nocturnos, el horario de iluminación y el valor de la seña.
+                Personalizá los precios diurnos/nocturnos, el horario de iluminación y el valor de la seña pública requerida para jugadores online.
               </p>
             </div>
 
@@ -436,7 +466,7 @@ export default function OwnerDashboard() {
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-xs text-slate-300">Monto de Seña para Reservar (MercadoPago)</label>
+                  <label className="text-xs text-slate-300">Monto de Seña para Jugadores Online (MercadoPago)</label>
                   <input
                     type="number"
                     value={clubSettings.deposit_amount}
@@ -510,6 +540,7 @@ export default function OwnerDashboard() {
         )}
       </main>
 
+      {/* Modal: Crear Reserva Manual */}
       {isModalOpen && selectedSlot && (
         <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-6 space-y-4 shadow-2xl">
@@ -518,36 +549,156 @@ export default function OwnerDashboard() {
               <button onClick={() => setIsModalOpen(false)} className="text-slate-400">✕</button>
             </div>
             <form onSubmit={handleSaveBooking} className="space-y-3">
-              <div className="p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-300">
-                Horario: <span className="text-white font-bold">{selectedSlot.timeSlot}</span>
+              <div className="p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs flex justify-between items-center">
+                <span className="text-slate-400">Horario:</span>
+                <span className="text-white font-bold">{selectedSlot.timeSlot}</span>
               </div>
-              <div className="space-y-1">
-                <label className="text-xs text-slate-300">Nombre del Jugador</label>
+
+              <div className="flex items-center gap-2 p-2 bg-slate-950/60 border border-slate-800 rounded-xl">
                 <input
-                  required
-                  type="text"
-                  placeholder="Martín"
-                  value={bookingFormData.playerName}
-                  onChange={(e) => setBookingFormData({ ...bookingFormData, playerName: e.target.value })}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white"
+                  type="checkbox"
+                  id="isBlocked"
+                  checked={bookingFormData.isBlocked}
+                  onChange={(e) => setBookingFormData({ ...bookingFormData, isBlocked: e.target.checked })}
+                  className="rounded text-blue-600 focus:ring-0"
                 />
+                <label htmlFor="isBlocked" className="text-xs text-slate-300 font-medium cursor-pointer">
+                  Bloquear este horario (Mantenimiento / Fijo)
+                </label>
               </div>
-              <div className="space-y-1">
-                <label className="text-xs text-slate-300">WhatsApp</label>
-                <input
-                  required
-                  type="text"
-                  placeholder="+54 9 343 ..."
-                  value={bookingFormData.playerPhone}
-                  onChange={(e) => setBookingFormData({ ...bookingFormData, playerPhone: e.target.value })}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white"
-                />
-              </div>
+
+              {!bookingFormData.isBlocked && (
+                <>
+                  <div className="space-y-1">
+                    <label className="text-xs text-slate-300">Nombre del Jugador</label>
+                    <input
+                      required
+                      type="text"
+                      placeholder="Ej: Pedro González"
+                      value={bookingFormData.playerName}
+                      onChange={(e) => setBookingFormData({ ...bookingFormData, playerName: e.target.value })}
+                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-xs text-slate-300">WhatsApp del Jugador (Opcional)</label>
+                    <input
+                      type="text"
+                      placeholder="+54 9 343 ..."
+                      value={bookingFormData.playerPhone}
+                      onChange={(e) => setBookingFormData({ ...bookingFormData, playerPhone: e.target.value })}
+                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <div className="flex justify-between items-center">
+                      <label className="text-xs text-slate-300">Seña Cobrada ($)</label>
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => setBookingFormData({ ...bookingFormData, depositPaid: 0 })}
+                          className={`text-[10px] px-2 py-0.5 rounded border transition ${
+                            bookingFormData.depositPaid === 0
+                              ? "bg-amber-500/20 text-amber-300 border-amber-500/40 font-bold"
+                              : "text-slate-400 border-slate-800 hover:text-white"
+                          }`}
+                        >
+                          Sin seña ($0)
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setBookingFormData({ ...bookingFormData, depositPaid: clubSettings.deposit_amount })}
+                          className={`text-[10px] px-2 py-0.5 rounded border transition ${
+                            bookingFormData.depositPaid === clubSettings.deposit_amount
+                              ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/40 font-bold"
+                              : "text-slate-400 border-slate-800 hover:text-white"
+                          }`}
+                        >
+                          Seña completa (${clubSettings.deposit_amount.toLocaleString()})
+                        </button>
+                      </div>
+                    </div>
+                    <input
+                      type="number"
+                      min="0"
+                      value={bookingFormData.depositPaid}
+                      onChange={(e) => setBookingFormData({ ...bookingFormData, depositPaid: Number(e.target.value) })}
+                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white"
+                    />
+                    <p className="text-[10px] text-slate-400">Si es un amigo o pagó en el club, podés dejarlo en $0.</p>
+                  </div>
+                </>
+              )}
+
               <div className="flex justify-end gap-2 pt-3 border-t border-slate-800">
                 <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 text-xs text-slate-400">Cancelar</button>
                 <button type="submit" className="bg-blue-600 hover:bg-blue-500 text-white font-bold px-4 py-2 rounded-xl text-xs">Guardar Reserva</button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Detalles de Reserva & Liberar Pista */}
+      {activeBookingDetails && (
+        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-6 space-y-4 shadow-2xl">
+            <div className="flex justify-between items-center border-b border-slate-800 pb-3">
+              <h3 className="font-bold text-white text-base">Detalle del Turno</h3>
+              <button onClick={() => setActiveBookingDetails(null)} className="text-slate-400">✕</button>
+            </div>
+
+            <div className="bg-slate-950 border border-slate-800 rounded-xl p-4 space-y-2.5 text-xs">
+              <div className="flex justify-between">
+                <span className="text-slate-400">Jugador / Titular:</span>
+                <span className="text-white font-bold">{activeBookingDetails.player_name}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-400">Horario:</span>
+                <span className="text-white font-semibold">{activeBookingDetails.time_slot}</span>
+              </div>
+              {activeBookingDetails.player_phone && activeBookingDetails.player_phone !== "-" && (
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-400">WhatsApp:</span>
+                  <a
+                    href={`https://wa.me/${activeBookingDetails.player_phone.replace(/[^0-9]/g, "")}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-1 text-emerald-400 font-semibold hover:underline"
+                  >
+                    <MessageCircle className="h-3 w-3" /> {activeBookingDetails.player_phone}
+                  </a>
+                </div>
+              )}
+              <div className="flex justify-between border-t border-slate-800 pt-2">
+                <span className="text-slate-400">Seña Abonada:</span>
+                <span className="font-bold text-emerald-400">
+                  {Number(activeBookingDetails.deposit_paid) > 0
+                    ? `$${Number(activeBookingDetails.deposit_paid).toLocaleString()}`
+                    : "Sin seña ($0 - Paga en club)"}
+                </span>
+              </div>
+            </div>
+
+            <div className="pt-3 border-t border-slate-800 flex justify-between gap-2">
+              <button
+                type="button"
+                onClick={() => handleDeleteBooking(activeBookingDetails.id)}
+                className="flex items-center gap-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 px-3.5 py-2 rounded-xl text-xs font-semibold transition"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+                <span>Liberar / Cancelar Turno</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveBookingDetails(null)}
+                className="px-4 py-2 rounded-xl text-xs text-slate-300 bg-slate-800 hover:bg-slate-700 font-medium"
+              >
+                Cerrar
+              </button>
+            </div>
           </div>
         </div>
       )}

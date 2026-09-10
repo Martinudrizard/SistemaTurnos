@@ -60,8 +60,8 @@ router.post('/', async (req: Request, res: Response) => {
         date_str || 'Hoy',
         time_slot,
         status,
-        Number(price) || 16000,
-        Number(deposit) || (is_blocked ? 0 : 8000),
+        price !== undefined && price !== null ? Number(price) : 16000,
+        deposit !== undefined && deposit !== null ? Number(deposit) : (is_blocked ? 0 : 0),
         via_bot || false,
       ]
     );
