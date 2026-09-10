@@ -75,7 +75,36 @@ export async function sendOwnerCredentialsEmail({
 </html>
 `;
 
-  // 1. Si existe RESEND_API_KEY, enviar por HTTPS REST API (garantizado 100% en Railway sin bloqueo de puertos)
+  // 1. Si están configurados SMTP_USER y SMTP_PASS (Gmail), intentar enviar primero por Gmail
+  if (smtpUser && smtpPass) {
+    try {
+      const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+          user: smtpUser,
+          pass: smtpPass,
+        },
+        tls: {
+          rejectUnauthorized: false,
+        },
+      });
+
+      const info = await transporter.sendMail({
+        from: `"PadelHub" <${fromEmail}>`,
+        to: toEmail,
+        subject: `🎾 Tus credenciales de acceso a PadelHub - ${clubName}`,
+        html: htmlContent,
+        text: `Hola ${ownerName},\n\nTu complejo ${clubName} ha sido dado de alta.\n\nUsuario: ${toEmail}\nPassword: ${password}\nIngresá aquí: ${loginUrl}\n`,
+      });
+
+      console.log(`[EmailService] ¡Correo enviado vía Gmail a ${toEmail}! MessageId:`, info.messageId);
+      return { success: true, messageId: info.messageId };
+    } catch (error: any) {
+      console.warn('[EmailService] Advertencia al enviar por Gmail, intentando fallback Resend si existe:', error.message);
+    }
+  }
+
+  // 2. Fallback a Resend HTTP API
   const resendApiKey = process.env.RESEND_API_KEY?.trim();
   if (resendApiKey) {
     try {
@@ -107,38 +136,7 @@ export async function sendOwnerCredentialsEmail({
     }
   }
 
-  // 2. Si no hay Resend, intentar SMTP directo
-  if (!smtpUser || !smtpPass) {
-    const msg = 'SMTP_USER o SMTP_PASS no configurados en Railway.';
-    console.warn(`[EmailService] ${msg}`);
-    return { success: false, error: msg };
-  }
-
-  try {
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: smtpUser,
-        pass: smtpPass,
-      },
-      tls: {
-        rejectUnauthorized: false,
-      },
-    });
-
-    const info = await transporter.sendMail({
-      from: `"PadelHub Core" <${fromEmail}>`,
-      to: toEmail,
-      subject: `Tus credenciales de acceso a PadelHub - ${clubName}`,
-      html: htmlContent,
-      text: `Hola ${ownerName},\n\nTu complejo ${clubName} ha sido dado de alta.\n\nUsuario: ${toEmail}\nPassword: ${password}\nIngresá aquí: ${loginUrl}\n`,
-    });
-
-    console.log(`[EmailService] ¡Correo enviado con éxito a ${toEmail}! MessageId:`, info.messageId);
-    return { success: true, messageId: info.messageId };
-  } catch (error: any) {
-    const errText = error.message || String(error);
-    console.error('[EmailService] Error al enviar correo vía SMTP:', errText);
-    return { success: false, error: errText };
-  }
+  const msg = 'No se pudo enviar el correo: verifique las credenciales de Gmail o Resend.';
+  console.warn(`[EmailService] ${msg}`);
+  return { success: false, error: msg };
 }
