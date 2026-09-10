@@ -19,6 +19,11 @@ import {
   ChevronLeft,
   ChevronRight,
   CalendarDays,
+  Copy,
+  ExternalLink,
+  Share2,
+  CreditCard,
+  Key,
 } from "lucide-react";
 
 interface Court {
@@ -49,12 +54,19 @@ interface Booking {
 interface ClubSettings {
   id: string;
   name: string;
+  slug: string;
+  phone: string;
+  city: string;
   open_time: string;
   close_time: string;
   price_day: number;
   price_night: number;
   light_start_time: string;
   deposit_amount: number;
+  mp_access_token?: string;
+  mp_public_key?: string;
+  custom_whatsapp_msg?: string;
+  ai_bot_enabled?: boolean;
 }
 
 const MONTHS = [
@@ -80,7 +92,6 @@ export default function OwnerDashboard() {
   const [user, setUser] = useState<any>(null);
   const [activeTab, setActiveTab] = useState<"grid" | "courts" | "pricing">("grid");
   
-  // Default date (September 9, 2026 or current)
   const [currentDateIso, setCurrentDateIso] = useState<string>("2026-09-09");
   const dateInputRef = useRef<HTMLInputElement>(null);
 
@@ -89,14 +100,22 @@ export default function OwnerDashboard() {
   const [clubSettings, setClubSettings] = useState<ClubSettings>({
     id: "",
     name: "Mi Complejo",
+    slug: "roca",
+    phone: "+54 9 343 555-1234",
+    city: "Argentina",
     open_time: "14:00",
     close_time: "01:00",
     price_day: 14000,
     price_night: 18000,
     light_start_time: "18:30",
     deposit_amount: 8000,
+    mp_access_token: "",
+    mp_public_key: "",
+    custom_whatsapp_msg: "¡Hola! Te damos la bienvenida a nuestro complejo. ¿En qué podemos ayudarte?",
+    ai_bot_enabled: true,
   });
   const [saveMsg, setSaveMsg] = useState("");
+  const [copiedLink, setCopiedLink] = useState(false);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState<{ courtId: string; timeSlot: string } | null>(null);
@@ -131,12 +150,19 @@ export default function OwnerDashboard() {
         setClubSettings({
           id: data.id,
           name: data.name,
+          slug: data.slug || "roca",
+          phone: data.phone || "+54 9 343 555-1234",
+          city: data.city || "Argentina",
           open_time: data.open_time || "14:00",
           close_time: data.close_time || "01:00",
           price_day: Number(data.price_day) || 14000,
           price_night: Number(data.price_night) || 18000,
           light_start_time: data.light_start_time || "18:30",
           deposit_amount: Number(data.deposit_amount) || 8000,
+          mp_access_token: data.mp_access_token || "",
+          mp_public_key: data.mp_public_key || "",
+          custom_whatsapp_msg: data.custom_whatsapp_msg || "¡Hola! Te damos la bienvenida a nuestro complejo.",
+          ai_bot_enabled: data.ai_bot_enabled ?? true,
         });
       }
 
@@ -167,7 +193,7 @@ export default function OwnerDashboard() {
         body: JSON.stringify(clubSettings),
       });
       if (res.ok) {
-        setSaveMsg("¡Tarifas y horarios guardados con éxito!");
+        setSaveMsg("¡Configuración de complejo, WhatsApp y MercadoPago guardada con éxito!");
       }
     } catch (err) {
       setSaveMsg("Configuración guardada localmente");
@@ -192,6 +218,14 @@ export default function OwnerDashboard() {
 
   const handleToday = () => {
     setCurrentDateIso("2026-09-09");
+  };
+
+  const publicUrl = `https://sistema-turnos-gilt.vercel.app/clubs/${clubSettings.slug || "roca"}`;
+
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(publicUrl);
+    setCopiedLink(true);
+    setTimeout(() => setCopiedLink(false), 2500);
   };
 
   const TIME_SLOTS = [
@@ -345,7 +379,7 @@ export default function OwnerDashboard() {
                   activeTab === "pricing" ? "bg-blue-600 text-white shadow" : "text-slate-400 hover:text-white"
                 }`}
               >
-                Tarifas & Horarios
+                Ajustes & MercadoPago
               </button>
             </div>
             <a
@@ -360,7 +394,39 @@ export default function OwnerDashboard() {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-6 py-8 space-y-8">
+      <main className="max-w-7xl mx-auto px-6 py-8 space-y-6">
+        {/* Banner: Tu Link Público para Jugadores */}
+        <div className="bg-gradient-to-r from-blue-950/40 via-indigo-950/30 to-slate-900 border border-blue-500/20 p-4 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="space-y-1 text-left w-full md:w-auto">
+            <div className="flex items-center gap-2">
+              <span className="text-xs bg-blue-500/20 text-blue-300 border border-blue-500/30 px-2 py-0.5 rounded font-bold">
+                Link Público de Reservas
+              </span>
+              <span className="text-xs text-slate-400">Pegalo en Instagram o WhatsApp</span>
+            </div>
+            <div className="text-xs font-mono text-emerald-400 break-all">{publicUrl}</div>
+          </div>
+
+          <div className="flex items-center gap-2 w-full md:w-auto justify-end">
+            <button
+              onClick={handleCopyLink}
+              className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-500 text-white font-semibold px-4 py-2 rounded-xl text-xs transition shadow-md shadow-blue-600/20"
+            >
+              <Copy className="h-3.5 w-3.5" />
+              <span>{copiedLink ? "¡Copiado!" : "Copiar Link"}</span>
+            </button>
+            <a
+              href={publicUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="flex items-center gap-1.5 bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 px-3.5 py-2 rounded-xl text-xs font-semibold transition"
+            >
+              <ExternalLink className="h-3.5 w-3.5" />
+              <span>Probar</span>
+            </a>
+          </div>
+        </div>
+
         <section className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="bg-slate-900/70 border border-slate-800 p-5 rounded-2xl">
             <p className="text-xs font-medium text-slate-400">Ocupación del Día</p>
@@ -387,12 +453,12 @@ export default function OwnerDashboard() {
           </div>
 
           <div className="bg-slate-900/70 border border-slate-800 p-5 rounded-2xl">
-            <p className="text-xs font-medium text-slate-400">Bot IA WhatsApp</p>
+            <p className="text-xs font-medium text-slate-400">WhatsApp & Bot IA</p>
             <div className="flex items-center gap-2 mt-1">
               <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span>
-              <span className="text-sm font-bold text-white">Online 24/7</span>
+              <span className="text-sm font-bold text-white">{clubSettings.phone || "Conectado"}</span>
             </div>
-            <p className="text-xs text-slate-400 mt-1">Responde dudas y confirma turnos</p>
+            <p className="text-xs text-slate-400 mt-1">Respuestas y reservas automáticas</p>
           </div>
         </section>
 
@@ -542,101 +608,178 @@ export default function OwnerDashboard() {
         )}
 
         {activeTab === "pricing" && (
-          <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 space-y-6 max-w-3xl">
-            <div>
-              <h2 className="text-lg font-bold text-white">Configuración de Horarios, Tarifas & Seña</h2>
-              <p className="text-xs text-slate-400">
-                Personalizá los precios diurnos/nocturnos, el horario de iluminación y el valor de la seña pública requerida para jugadores online.
-              </p>
-            </div>
-
+          <div className="space-y-6 max-w-4xl">
             {saveMsg && (
-              <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-semibold flex items-center gap-2">
+              <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-semibold flex items-center gap-2">
                 <CheckCircle2 className="h-4 w-4" />
                 <span>{saveMsg}</span>
               </div>
             )}
 
-            <form onSubmit={handleSaveSettings} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="text-xs text-slate-300 flex items-center gap-1.5">
-                    <Sun className="h-3.5 w-3.5 text-amber-400" /> Precio Turno Sin Luz (Diurno)
-                  </label>
-                  <input
-                    type="number"
-                    value={clubSettings.price_day}
-                    onChange={(e) => setClubSettings({ ...clubSettings, price_day: Number(e.target.value) })}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white"
-                  />
+            <form onSubmit={handleSaveSettings} className="space-y-6">
+              {/* Sección 1: Información del Complejo & WhatsApp */}
+              <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 space-y-4">
+                <div className="flex items-center gap-2">
+                  <MessageCircle className="h-5 w-5 text-emerald-400" />
+                  <div>
+                    <h2 className="text-base font-bold text-white">WhatsApp & Contacto Oficial</h2>
+                    <p className="text-xs text-slate-400">Configurá el número al que te escribirán los jugadores y responderá el Bot IA</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                  <div className="space-y-1">
+                    <label className="text-xs text-slate-300">Número de WhatsApp (con código de país y área)</label>
+                    <input
+                      type="text"
+                      placeholder="+54 9 343 456-7890"
+                      value={clubSettings.phone}
+                      onChange={(e) => setClubSettings({ ...clubSettings, phone: e.target.value })}
+                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-xs text-slate-300">Ciudad / Ubicación</label>
+                    <input
+                      type="text"
+                      placeholder="Ej: Colón, Entre Ríos"
+                      value={clubSettings.city}
+                      onChange={(e) => setClubSettings({ ...clubSettings, city: e.target.value })}
+                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white"
+                    />
+                  </div>
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-xs text-slate-300 flex items-center gap-1.5">
-                    <Moon className="h-3.5 w-3.5 text-blue-400" /> Precio Turno Con Luz (Nocturno)
-                  </label>
+                  <label className="text-xs text-slate-300">Mensaje de bienvenida para WhatsApp</label>
                   <input
-                    type="number"
-                    value={clubSettings.price_night}
-                    onChange={(e) => setClubSettings({ ...clubSettings, price_night: Number(e.target.value) })}
+                    type="text"
+                    placeholder="¡Hola! Te damos la bienvenida a nuestro complejo. ¿En qué podemos ayudarte?"
+                    value={clubSettings.custom_whatsapp_msg || ""}
+                    onChange={(e) => setClubSettings({ ...clubSettings, custom_whatsapp_msg: e.target.value })}
                     className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white"
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="text-xs text-slate-300">Hora de inicio de luz artificial</label>
-                  <input
-                    type="text"
-                    placeholder="18:30"
-                    value={clubSettings.light_start_time}
-                    onChange={(e) => setClubSettings({ ...clubSettings, light_start_time: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white"
-                  />
+              {/* Sección 2: Tarifas & Horarios */}
+              <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 space-y-4">
+                <div className="flex items-center gap-2">
+                  <Sun className="h-5 w-5 text-amber-400" />
+                  <div>
+                    <h2 className="text-base font-bold text-white">Tarifas, Iluminación & Horarios</h2>
+                    <p className="text-xs text-slate-400">Precios por turno de 90 minutos y horario de luz</p>
+                  </div>
                 </div>
 
-                <div className="space-y-1">
-                  <label className="text-xs text-slate-300">Monto de Seña para Jugadores Online (MercadoPago)</label>
-                  <input
-                    type="number"
-                    value={clubSettings.deposit_amount}
-                    onChange={(e) => setClubSettings({ ...clubSettings, deposit_amount: Number(e.target.value) })}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white"
-                  />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                  <div className="space-y-1">
+                    <label className="text-xs text-slate-300 flex items-center gap-1.5">
+                      <Sun className="h-3.5 w-3.5 text-amber-400" /> Precio Turno Sin Luz (Diurno)
+                    </label>
+                    <input
+                      type="number"
+                      value={clubSettings.price_day}
+                      onChange={(e) => setClubSettings({ ...clubSettings, price_day: Number(e.target.value) })}
+                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-xs text-slate-300 flex items-center gap-1.5">
+                      <Moon className="h-3.5 w-3.5 text-blue-400" /> Precio Turno Con Luz (Nocturno)
+                    </label>
+                    <input
+                      type="number"
+                      value={clubSettings.price_night}
+                      onChange={(e) => setClubSettings({ ...clubSettings, price_night: Number(e.target.value) })}
+                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-xs text-slate-300">Hora de inicio de luz artificial</label>
+                    <input
+                      type="text"
+                      placeholder="18:30"
+                      value={clubSettings.light_start_time}
+                      onChange={(e) => setClubSettings({ ...clubSettings, light_start_time: e.target.value })}
+                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-xs text-slate-300">Monto de Seña para Jugadores Online ($)</label>
+                    <input
+                      type="number"
+                      value={clubSettings.deposit_amount}
+                      onChange={(e) => setClubSettings({ ...clubSettings, deposit_amount: Number(e.target.value) })}
+                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-xs text-slate-300">Horario de Apertura</label>
+                    <input
+                      type="text"
+                      placeholder="14:00"
+                      value={clubSettings.open_time}
+                      onChange={(e) => setClubSettings({ ...clubSettings, open_time: e.target.value })}
+                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-xs text-slate-300">Horario de Cierre</label>
+                    <input
+                      type="text"
+                      placeholder="01:00"
+                      value={clubSettings.close_time}
+                      onChange={(e) => setClubSettings({ ...clubSettings, close_time: e.target.value })}
+                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white"
+                    />
+                  </div>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="text-xs text-slate-300">Horario de Apertura</label>
-                  <input
-                    type="text"
-                    placeholder="14:00"
-                    value={clubSettings.open_time}
-                    onChange={(e) => setClubSettings({ ...clubSettings, open_time: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white"
-                  />
+              {/* Sección 3: Cuenta de MercadoPago Propia */}
+              <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 space-y-4">
+                <div className="flex items-center gap-2">
+                  <CreditCard className="h-5 w-5 text-blue-400" />
+                  <div>
+                    <h2 className="text-base font-bold text-white">Cobros con MercadoPago</h2>
+                    <p className="text-xs text-slate-400">Pegá tus credenciales de MercadoPago para que las señas vayan directo a tu cuenta bancaria</p>
+                  </div>
                 </div>
 
-                <div className="space-y-1">
-                  <label className="text-xs text-slate-300">Horario de Cierre</label>
-                  <input
-                    type="text"
-                    placeholder="01:00"
-                    value={clubSettings.close_time}
-                    onChange={(e) => setClubSettings({ ...clubSettings, close_time: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white"
-                  />
+                <div className="space-y-3 pt-2">
+                  <div className="space-y-1">
+                    <label className="text-xs text-slate-300 flex items-center gap-1">
+                      <Key className="h-3 w-3 text-amber-400" /> Access Token de MercadoPago (Producción)
+                    </label>
+                    <input
+                      type="password"
+                      placeholder="APP_USR-..."
+                      value={clubSettings.mp_access_token || ""}
+                      onChange={(e) => setClubSettings({ ...clubSettings, mp_access_token: e.target.value })}
+                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white font-mono"
+                    />
+                    <p className="text-[10px] text-slate-500">Obtenelo en mercadopago.com.ar/developers/panel</p>
+                  </div>
                 </div>
               </div>
 
-              <div className="pt-4 border-t border-slate-800 flex justify-end">
+              <div className="pt-2 flex justify-end">
                 <button
                   type="submit"
-                  className="bg-blue-600 hover:bg-blue-500 text-white font-bold px-6 py-2.5 rounded-xl text-xs transition shadow-lg shadow-blue-500/20"
+                  className="bg-blue-600 hover:bg-blue-500 text-white font-bold px-8 py-3 rounded-xl text-xs transition shadow-lg shadow-blue-500/20"
                 >
-                  Guardar Configuración
+                  Guardar Todos los Ajustes
                 </button>
               </div>
             </form>

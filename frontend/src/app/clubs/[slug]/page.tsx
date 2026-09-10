@@ -215,13 +215,38 @@ export default function DynamicClubBookingPage() {
       if (res.ok) {
         loadClubData();
       }
+
+      // Generate MercadoPago Checkout Pro preference
+      const prefRes = await fetch("https://padel-saas-backend-production.up.railway.app/api/payments/create-preference", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          club_id: club?.id,
+          court_id: selectedSlot?.courtId,
+          player_name: `${playerForm.firstName} ${playerForm.lastName}`.trim(),
+          player_phone: playerForm.phone,
+          player_email: playerForm.email,
+          date_str: selectedDate.fullDate,
+          time_slot: selectedSlot?.timeSlot,
+          price: selectedSlot?.price || priceDay,
+          amount: selectedSlot?.deposit || depositAmount,
+        }),
+      });
+
+      if (prefRes.ok) {
+        const prefData = await prefRes.json();
+        if (prefData.init_point && prefData.init_point.includes("mercadopago.com")) {
+          window.location.href = prefData.init_point;
+          return;
+        }
+      }
     } catch (e) {
       console.warn("Reservation saved");
     }
 
     setTimeout(() => {
       setCheckoutStep("success");
-    }, 1800);
+    }, 1500);
   };
 
   const clubDisplayName = club?.name || "Complejo de Pádel";

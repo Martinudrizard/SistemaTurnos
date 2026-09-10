@@ -45,7 +45,11 @@ router.put('/:id', async (req: Request, res: Response) => {
     light_start_time,
     deposit_amount,
     phone,
-    city
+    city,
+    mp_access_token,
+    mp_public_key,
+    custom_whatsapp_msg,
+    ai_bot_enabled,
   } = req.body;
 
   try {
@@ -59,8 +63,12 @@ router.put('/:id', async (req: Request, res: Response) => {
            light_start_time = COALESCE($6, light_start_time),
            deposit_amount = COALESCE($7, deposit_amount),
            phone = COALESCE($8, phone),
-           city = COALESCE($9, city)
-       WHERE id::text = $10 OR slug = $10
+           city = COALESCE($9, city),
+           mp_access_token = COALESCE($10, mp_access_token),
+           mp_public_key = COALESCE($11, mp_public_key),
+           custom_whatsapp_msg = COALESCE($12, custom_whatsapp_msg),
+           ai_bot_enabled = COALESCE($13, ai_bot_enabled)
+       WHERE id::text = $14 OR slug = $14
        RETURNING *`,
       [
         open_time,
@@ -72,7 +80,11 @@ router.put('/:id', async (req: Request, res: Response) => {
         deposit_amount ? Number(deposit_amount) : null,
         phone,
         city,
-        id
+        mp_access_token,
+        mp_public_key,
+        custom_whatsapp_msg,
+        ai_bot_enabled,
+        id,
       ]
     );
 
