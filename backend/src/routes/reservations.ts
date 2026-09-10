@@ -3,9 +3,11 @@ import { pgPool } from '../db';
 
 const router = Router();
 
-// GET /api/reservations - Get reservations for a club and date (including fixed recurring slots)
+const DAYS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+
+// GET /api/reservations - Get reservations for a club
 router.get('/', async (req: Request, res: Response) => {
-  const { clubId, date } = req.query;
+  const { clubId } = req.query;
   try {
     let query = 'SELECT * FROM reservations WHERE 1=1';
     const params: any[] = [];
@@ -13,10 +15,6 @@ router.get('/', async (req: Request, res: Response) => {
     if (clubId) {
       params.push(clubId);
       query += ` AND club_id = $${params.length}`;
-    }
-    if (date) {
-      params.push(date);
-      query += ` AND (date_str = $${params.length} OR booking_type = 'fixed')`;
     }
 
     query += ' ORDER BY time_slot ASC';
@@ -28,7 +26,7 @@ router.get('/', async (req: Request, res: Response) => {
   }
 });
 
-// POST /api/reservations - Create reservation (casual or fixed)
+// POST /api/reservations - Create reservation (casual or weekly fixed)
 router.post('/', async (req: Request, res: Response) => {
   const {
     club_id,
@@ -42,6 +40,7 @@ router.post('/', async (req: Request, res: Response) => {
     deposit,
     is_blocked,
     booking_type,
+    day_of_week,
     via_bot
   } = req.body;
 
@@ -49,28 +48,50 @@ router.post('/', async (req: Request, res: Response) => {
     return res.status(400).json({ error: 'club_id, court_id and time_slot are required' });
   }
 
+  // Calculate day of week (0 = Dom, 1 = Lun, 2 = Mar, 3 = Mié, 4 = Jue, 5 = Vie, 6 = Sáb)
+  let calculatedDayOfWeek: number | null = null;
+  if (day_of_week !== undefined && day_of_week !== null) {
+    calculatedDayOfWeek = Number(day_of_week);
+  } else if (date_str && date_str.includes('-')) {
+    const [y, m, d] = date_str.split('-').map(Number);
+    calculatedDayOfWeek = new Date(y, m - 1, d).getDay();
+  } else {
+    calculatedDayOfWeek = new Date().getDay();
+  }
+
   const finalBookingType = booking_type === 'fixed' ? 'fixed' : 'casual';
-  const finalDate = finalBookingType === 'fixed' ? 'Todos los días (Fijo)' : (date_str || 'Hoy');
+  const dayName = calculatedDayOfWeek !== null && DAYS[calculatedDayOfWeek] ? DAYS[calculatedDayOfWeek] : 'Día';
+  const finalDate = finalBookingType === 'fixed' ? `Fijo (Todos los ${dayName})` : (date_str || 'Hoy');
 
   try {
-    // Check if slot is already occupied (either by exact date or by a permanent fixed booking)
+    // Check if slot is already occupied:
+    // 1. Same court, same time, not canceled
+    // 2. Either exact date match (for casual) OR matching day_of_week (for fixed weekly)
     const checkExisting = await pgPool.query(
-      `SELECT id FROM reservations
+      `SELECT id, player_name, booking_type, day_of_week, date_str FROM reservations
        WHERE court_id = $1
          AND time_slot = $2
          AND status != 'canceled'
-         AND (date_str = $3 OR booking_type = 'fixed' OR $4 = 'fixed')`,
-      [court_id, time_slot, date_str || 'Hoy', finalBookingType]
+         AND (
+           (date_str = $3)
+           OR (booking_type = 'fixed' AND day_of_week = $4)
+           OR ($5 = 'fixed' AND (day_of_week = $4 OR date_str = $3))
+         )`,
+      [court_id, time_slot, date_str || 'Hoy', calculatedDayOfWeek, finalBookingType]
     );
 
     if (checkExisting.rows.length > 0) {
-      return res.status(409).json({ error: 'Este horario ya se encuentra reservado u ocupado por un turno fijo' });
+      const existing = checkExisting.rows[0];
+      const conflictMsg = existing.booking_type === 'fixed'
+        ? `Este horario ya está reservado con turno fijo semanal para ${existing.player_name}`
+        : `Este horario ya se encuentra reservado para ${existing.player_name} en esta fecha`;
+      return res.status(409).json({ error: conflictMsg });
     }
 
     const status = is_blocked ? 'blocked' : 'deposit_paid';
     const result = await pgPool.query(
-      `INSERT INTO reservations (club_id, court_id, player_name, player_phone, player_email, date_str, time_slot, status, price, deposit_paid, booking_type, via_bot)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+      `INSERT INTO reservations (club_id, court_id, player_name, player_phone, player_email, date_str, time_slot, status, price, deposit_paid, booking_type, day_of_week, via_bot)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
        RETURNING *`,
       [
         club_id,
@@ -84,6 +105,7 @@ router.post('/', async (req: Request, res: Response) => {
         price !== undefined && price !== null ? Number(price) : 14000,
         deposit !== undefined && deposit !== null ? Number(deposit) : (is_blocked ? 0 : 0),
         finalBookingType,
+        calculatedDayOfWeek,
         via_bot || false,
       ]
     );

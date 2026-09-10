@@ -21,7 +21,6 @@ import {
   CalendarDays,
   Copy,
   ExternalLink,
-  Share2,
   CreditCard,
   Key,
 } from "lucide-react";
@@ -48,6 +47,7 @@ interface Booking {
   price: number;
   deposit_paid: number;
   booking_type?: "casual" | "fixed";
+  day_of_week?: number;
   via_bot: boolean;
 }
 
@@ -240,10 +240,24 @@ export default function OwnerDashboard() {
 
   const readableDate = formatDateReadable(currentDateIso);
 
+  // Day of week calculation for current date
+  const [currY, currM, currD] = currentDateIso.split("-").map(Number);
+  const currentDayOfWeek = new Date(currY, currM - 1, currD).getDay();
+  const currentDayName = DAYS[currentDayOfWeek];
+
   const getBookingForSlot = (courtId: string, timeSlot: string) => {
     return bookings.find((b) => {
       if (b.court_id !== courtId || b.time_slot !== timeSlot || b.status === "canceled") return false;
-      if (b.booking_type === "fixed") return true;
+      
+      // Weekly recurring fixed match: only matches if day_of_week matches current day of week!
+      if (b.booking_type === "fixed") {
+        if (b.day_of_week !== undefined && b.day_of_week !== null) {
+          return Number(b.day_of_week) === currentDayOfWeek;
+        }
+        return true;
+      }
+
+      // Casual match: matches exact date
       if (b.date_str === currentDateIso) return true;
       if (b.date_str === readableDate) return true;
       if (currentDateIso === "2026-09-09" && (b.date_str === "Hoy, 9 de Septiembre" || b.date_str === "Hoy")) return true;
@@ -286,6 +300,7 @@ export default function OwnerDashboard() {
           player_name: bookingFormData.isBlocked ? "Horario Bloqueado" : bookingFormData.playerName,
           player_phone: bookingFormData.isBlocked ? "-" : bookingFormData.playerPhone,
           date_str: currentDateIso,
+          day_of_week: currentDayOfWeek,
           time_slot: selectedSlot.timeSlot,
           price: bookingFormData.isBlocked ? 0 : Number(bookingFormData.price),
           deposit: bookingFormData.isBlocked ? 0 : Number(bookingFormData.depositPaid),
@@ -325,7 +340,9 @@ export default function OwnerDashboard() {
   // Day stats
   const activeDayBookings = bookings.filter((b) => {
     if (b.status === "canceled") return false;
-    if (b.booking_type === "fixed") return true;
+    if (b.booking_type === "fixed") {
+      return Number(b.day_of_week) === currentDayOfWeek;
+    }
     if (b.date_str === currentDateIso || b.date_str === readableDate) return true;
     if (currentDateIso === "2026-09-09" && (b.date_str === "Hoy, 9 de Septiembre" || b.date_str === "Hoy")) return true;
     return false;
@@ -429,7 +446,7 @@ export default function OwnerDashboard() {
 
         <section className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="bg-slate-900/70 border border-slate-800 p-5 rounded-2xl">
-            <p className="text-xs font-medium text-slate-400">Ocupación del Día</p>
+            <p className="text-xs font-medium text-slate-400">Ocupación ({currentDayName})</p>
             <h3 className="text-2xl font-bold mt-1 text-white">{occupationRate}%</h3>
             <p className="text-xs text-blue-400 mt-1 flex items-center gap-1">
               <Flame className="h-3.5 w-3.5" /> {occupiedSlotsCount} de {totalSlotsCount} turnos
@@ -464,7 +481,7 @@ export default function OwnerDashboard() {
 
         {activeTab === "grid" && (
           <div className="space-y-4">
-            {/* Navegador Completo del Calendario Anual */}
+            {/* Navegador del Calendario */}
             <div className="flex flex-col sm:flex-row justify-between items-center gap-4 bg-slate-900/80 border border-slate-800 p-4 rounded-2xl shadow-lg">
               <div className="flex items-center gap-2 w-full sm:w-auto">
                 <button
@@ -513,7 +530,7 @@ export default function OwnerDashboard() {
               </div>
 
               <div className="text-xs text-slate-400">
-                Hacé clic en cualquier casillero libre para reservar o en uno ocupado para ver saldo y detalles
+                Los turnos fijos se repiten semanalmente cada <span className="font-bold text-white">{currentDayName}</span>
               </div>
             </div>
 
@@ -568,8 +585,8 @@ export default function OwnerDashboard() {
                                     <div className="font-semibold flex items-center justify-between">
                                       <span className="truncate">{booking.player_name}</span>
                                       {booking.booking_type === "fixed" && (
-                                        <span className="inline-flex items-center gap-0.5 text-[9px] bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 px-1.5 py-0.2 rounded font-bold ml-1 flex-shrink-0">
-                                          <Repeat className="h-2.5 w-2.5" /> Fijo
+                                        <span className="inline-flex items-center gap-0.5 text-[9px] bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 px-1.5 py-0.2 rounded font-bold ml-1 flex-shrink-0" title={`Turno Fijo Semanal (${currentDayName})`}>
+                                          <Repeat className="h-2.5 w-2.5" /> Fijo {currentDayName.substring(0, 3)}
                                         </span>
                                       )}
                                       {booking.status === "blocked" && <Lock className="h-3 w-3 text-red-400 ml-1 flex-shrink-0" />}
@@ -814,7 +831,7 @@ export default function OwnerDashboard() {
         )}
       </main>
 
-      {/* Modal: Crear Reserva Manual (Casual o Fijo) */}
+      {/* Modal: Crear Reserva Manual (Casual o Fijo Semanal) */}
       {isModalOpen && selectedSlot && (
         <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-6 space-y-4 shadow-2xl">
@@ -825,7 +842,7 @@ export default function OwnerDashboard() {
             <form onSubmit={handleSaveBooking} className="space-y-3">
               <div className="p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs space-y-1">
                 <div className="flex justify-between items-center">
-                  <span className="text-slate-400">Fecha:</span>
+                  <span className="text-slate-400">Fecha seleccionada:</span>
                   <span className="text-white font-semibold">{readableDate}</span>
                 </div>
                 <div className="flex justify-between items-center">
@@ -834,7 +851,7 @@ export default function OwnerDashboard() {
                 </div>
               </div>
 
-              {/* Selector de Tipo de Turno: Casual vs Fijo */}
+              {/* Selector de Tipo de Turno: Casual vs Fijo Semanal */}
               <div className="space-y-1.5">
                 <label className="text-xs text-slate-300 font-medium">Modalidad del Turno</label>
                 <div className="grid grid-cols-2 gap-2">
@@ -851,7 +868,7 @@ export default function OwnerDashboard() {
                       <Zap className="h-3.5 w-3.5 text-blue-400" />
                       <span>Turno Casual</span>
                     </div>
-                    <span className="text-[10px] text-slate-400">Solo para este día</span>
+                    <span className="text-[10px] text-slate-400">Solo {currentDayName} {currD}</span>
                   </button>
 
                   <button
@@ -865,9 +882,9 @@ export default function OwnerDashboard() {
                   >
                     <div className="flex items-center gap-1.5 text-xs font-bold">
                       <Repeat className="h-3.5 w-3.5 text-indigo-400" />
-                      <span>Turno Fijo</span>
+                      <span>Fijo Semanal</span>
                     </div>
-                    <span className="text-[10px] text-slate-400">Bloquea todos los días</span>
+                    <span className="text-[10px] text-slate-400">Todos los {currentDayName}</span>
                   </button>
                 </div>
               </div>
@@ -976,7 +993,7 @@ export default function OwnerDashboard() {
                 <span className="text-slate-400">Modalidad:</span>
                 {activeBookingDetails.booking_type === "fixed" ? (
                   <span className="inline-flex items-center gap-1 text-[10px] bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 px-2 py-0.5 rounded-md font-bold">
-                    <Repeat className="h-3 w-3" /> Turno Fijo Recurrente
+                    <Repeat className="h-3 w-3" /> Fijo Semanal ({activeBookingDetails.day_of_week !== undefined && activeBookingDetails.day_of_week !== null ? DAYS[activeBookingDetails.day_of_week] : currentDayName})
                   </span>
                 ) : (
                   <span className="inline-flex items-center gap-1 text-[10px] bg-blue-500/20 text-blue-300 border border-blue-500/40 px-2 py-0.5 rounded-md font-bold">

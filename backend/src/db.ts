@@ -39,6 +39,7 @@ export const initDb = async () => {
       ALTER TABLE clubs ADD COLUMN IF NOT EXISTS mp_public_key TEXT;
       ALTER TABLE clubs ADD COLUMN IF NOT EXISTS custom_whatsapp_msg TEXT DEFAULT '¡Hola! Te damos la bienvenida a nuestro complejo.';
       ALTER TABLE reservations ADD COLUMN IF NOT EXISTS booking_type VARCHAR(50) DEFAULT 'casual';
+      ALTER TABLE reservations ADD COLUMN IF NOT EXISTS day_of_week INT;
       ALTER TABLE reservations ALTER COLUMN date_str TYPE VARCHAR(100);
       ALTER TABLE reservations ALTER COLUMN time_slot TYPE VARCHAR(50);
       ALTER TABLE reservations ALTER COLUMN status TYPE VARCHAR(50);

@@ -45,6 +45,7 @@ interface Reservation {
   time_slot: string;
   date_str: string;
   booking_type?: "casual" | "fixed";
+  day_of_week?: number;
   status: string;
 }
 
@@ -163,6 +164,7 @@ export default function DynamicClubBookingPage() {
   ];
 
   // Generate slots for active courts on selected date
+  const currentDayOfWeek = dateObj.getDay();
   const generatedSlots: Slot[] = [];
   activeCourts.forEach((court, cIdx) => {
     TIME_SLOTS.forEach((ts, tIdx) => {
@@ -170,14 +172,16 @@ export default function DynamicClubBookingPage() {
       const isNight = slotStartTime >= lightStart;
       const slotPrice = isNight ? priceNight : priceDay;
 
-      // Check if slot is occupied on this date or has a fixed permanent booking
-      const isOccupied = reservations.some(
-        (r) =>
-          r.court_id === court.id &&
-          r.time_slot === ts &&
-          r.status !== "canceled" &&
-          (r.booking_type === "fixed" || r.date_str === selectedDateIso || r.date_str.includes(String(currD)))
-      );
+      // Check if slot is occupied on this date or has a fixed booking for this day of week
+      const isOccupied = reservations.some((r) => {
+        if (r.court_id !== court.id || r.time_slot !== ts || r.status === "canceled") {
+          return false;
+        }
+        if (r.booking_type === "fixed") {
+          return Number(r.day_of_week) === currentDayOfWeek;
+        }
+        return r.date_str === selectedDateIso;
+      });
 
       generatedSlots.push({
         id: `slot-${cIdx}-${tIdx}`,
