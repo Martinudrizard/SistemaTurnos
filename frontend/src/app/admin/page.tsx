@@ -17,6 +17,7 @@ import {
   DollarSign,
   AlertCircle,
   Clock,
+  Trash2,
 } from "lucide-react";
 
 interface Club {
@@ -134,6 +135,29 @@ export default function SuperAdminPage() {
       }
     } catch (err) {
       alert("Error de conexión al registrar pago");
+    }
+  };
+
+  const handleDeleteClub = async (club: Club) => {
+    const confirmDelete = window.confirm(
+      `¿Estás seguro de que deseás ELIMINAR PERMANENTEMENTE el complejo "${club.name}"?\nEsta acción borrará todas sus canchas, reservas y accesos asociados.`
+    );
+    if (!confirmDelete) return;
+
+    try {
+      const res = await fetch(`https://padel-saas-backend-production.up.railway.app/api/clubs/${club.id}`, {
+        method: "DELETE",
+      });
+
+      if (res.ok) {
+        setMsg(`¡Complejo "${club.name}" eliminado correctamente!`);
+        loadClubs();
+      } else {
+        const data = await res.json();
+        alert(data.error || "Error al eliminar complejo");
+      }
+    } catch (err) {
+      alert("Error de conexión al eliminar complejo");
     }
   };
 
@@ -517,6 +541,13 @@ export default function SuperAdminPage() {
                           >
                             Ver Link <ExternalLink className="h-3 w-3" />
                           </a>
+                          <button
+                            onClick={() => handleDeleteClub(club)}
+                            className="inline-flex items-center gap-1 text-xs bg-[#EF4444]/10 border border-[#EF4444]/30 hover:bg-[#EF4444] hover:text-white text-[#EF4444] px-2.5 py-1.5 rounded-lg transition"
+                            title="Eliminar complejo permanentemente"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
                         </td>
                       </tr>
                     );

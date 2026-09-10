@@ -190,4 +190,34 @@ router.post('/', async (req: Request, res: Response) => {
   }
 });
 
+// DELETE /api/clubs/:id - Delete club and all associated records
+router.delete('/:id', async (req: Request, res: Response) => {
+  const { id } = req.params;
+  try {
+    // Delete reservations related to the club
+    await pgPool.query('DELETE FROM reservations WHERE club_id::text = $1', [id]);
+
+    // Delete courts related to the club
+    await pgPool.query('DELETE FROM courts WHERE club_id::text = $1', [id]);
+
+    // Unlink users associated with this club
+    await pgPool.query('UPDATE users SET club_id = NULL WHERE club_id::text = $1', [id]);
+
+    // Delete the club itself
+    const deleteRes = await pgPool.query(
+      'DELETE FROM clubs WHERE id::text = $1 OR slug = $1 RETURNING *',
+      [id]
+    );
+
+    if (deleteRes.rows.length === 0) {
+      return res.status(404).json({ error: 'Club no encontrado' });
+    }
+
+    res.json({ message: 'Complejo eliminado con éxito', deletedClub: deleteRes.rows[0] });
+  } catch (e: any) {
+    console.error('Error deleting club:', e);
+    res.status(500).json({ error: e.message || 'Error al eliminar complejo' });
+  }
+});
+
 export default router;
