@@ -13,6 +13,7 @@ import {
   Lock,
   Trophy,
   Sparkles,
+  CalendarDays,
 } from "lucide-react";
 
 interface Club {
@@ -79,7 +80,7 @@ const TIME_SLOTS = [
   "23:00 - 00:30",
 ];
 
-export default function CleanClubBookingPage() {
+export default function DynamicClubBookingPage() {
   const params = useParams();
   const slugParam = typeof params?.slug === "string" ? params.slug : "latoska-er";
 
@@ -227,7 +228,7 @@ export default function CleanClubBookingPage() {
         loadClubData();
       }
 
-      // Call MP Preference endpoint
+      // Generate MercadoPago Checkout preference
       const prefRes = await fetch("https://padel-saas-backend-production.up.railway.app/api/payments/create-preference", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -260,63 +261,77 @@ export default function CleanClubBookingPage() {
     }, 1500);
   };
 
-  const clubDisplayName = club?.name || "La Toska";
-  const clubDisplayCity = club?.city || "Concepción del Uruguay";
-  const clubPhoneClean = (club?.phone || "+54 9 3442 31-1384").replace(/[^0-9]/g, "");
+  const clubDisplayName = club?.name || "Complejo de Pádel";
+  const clubDisplayCity = club?.city || "Argentina";
+  const clubPhoneClean = (club?.phone || "+54 9 343 555-1234").replace(/[^0-9]/g, "");
 
   return (
     <div className="min-h-screen bg-[#0d1217] text-slate-100 font-sans pb-16">
       {/* Top Navbar */}
-      <header className="px-6 py-4 max-w-6xl mx-auto flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <span className="font-extrabold text-2xl tracking-tight text-white font-sans">
-            CLUBO
+      <header className="px-6 py-4 max-w-6xl mx-auto flex items-center justify-between border-b border-slate-800/40">
+        <div className="flex items-center gap-2.5">
+          <div className="h-8 w-8 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 font-bold shadow-lg shadow-emerald-500/10">
+            <Trophy className="h-4 w-4" />
+          </div>
+          <span className="font-extrabold text-base tracking-tight text-white">
+            Pádel Hub
           </span>
         </div>
+
+        <a
+          href={`https://wa.me/${clubPhoneClean}?text=Hola!%20Quería%20consultar%20por%20un%20turno%20en%20${encodeURIComponent(clubDisplayName)}`}
+          target="_blank"
+          rel="noreferrer"
+          className="flex items-center gap-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition"
+        >
+          <MessageCircle className="h-3.5 w-3.5" />
+          <span>WhatsApp Club</span>
+        </a>
       </header>
 
-      {/* Hero Banner with Padel Court Image & Green Overlay */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 mb-8">
-        <div className="relative rounded-3xl overflow-hidden h-48 sm:h-60 bg-emerald-900/40 border border-emerald-500/20 shadow-2xl flex items-end p-6 sm:p-8">
-          {/* Background image overlay */}
-          <div
-            className="absolute inset-0 bg-cover bg-center mix-blend-overlay opacity-60"
-            style={{
-              backgroundImage: `url('https://images.unsplash.com/photo-1554068865-24cecd4e34b8?q=80&w=1200&auto=format&fit=crop')`,
-            }}
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0d1217] via-emerald-950/60 to-transparent" />
+      {/* Hero Header Banner */}
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 my-6">
+        <div className="relative rounded-3xl overflow-hidden h-44 sm:h-52 bg-gradient-to-r from-emerald-950/80 via-slate-900 to-slate-950 border border-emerald-500/20 shadow-2xl flex items-end p-6 sm:p-8">
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0d1217] via-transparent to-transparent" />
 
-          {/* Club Avatar & Name */}
+          {/* Club Identity */}
           <div className="relative z-10 flex items-center gap-4 sm:gap-6">
-            <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-full bg-slate-900/90 border-2 border-white/80 flex items-center justify-center p-2 shadow-2xl flex-shrink-0">
-              <div className="h-full w-full rounded-full border border-white/30 flex items-center justify-center text-white font-bold text-xs tracking-widest text-center">
-                {clubDisplayName.substring(0, 3).toUpperCase()}
-              </div>
+            <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-2xl bg-slate-900 border-2 border-emerald-500/40 flex items-center justify-center p-2 shadow-2xl flex-shrink-0 text-emerald-400 font-extrabold text-xl sm:text-2xl">
+              {clubDisplayName.substring(0, 2).toUpperCase()}
             </div>
 
             <div>
-              <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-                {clubDisplayName}
-              </h1>
-              <p className="text-xs sm:text-sm text-slate-300 font-medium lowercase">
-                {clubDisplayCity}
+              <div className="flex items-center gap-2">
+                <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+                  {clubDisplayName}
+                </h1>
+                <span className="text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded-full font-semibold">
+                  Oficial
+                </span>
+              </div>
+              <p className="text-xs sm:text-sm text-slate-400 font-medium mt-0.5 flex items-center gap-1">
+                <MapPin className="h-3.5 w-3.5 text-slate-500" /> {clubDisplayCity}
               </p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Main Content Layout: 2 Columns (Reserva de canchas + Información) */}
+      {/* Main Layout: 2 Columns */}
       <main className="max-w-6xl mx-auto px-4 sm:px-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left Column: Reserva de Canchas */}
+        {/* Left Column: Turnos Disponibles */}
         <div className="lg:col-span-2 bg-[#131b22] border border-slate-800/80 rounded-3xl p-6 sm:p-8 space-y-6 shadow-xl">
-          <h2 className="text-xl font-extrabold text-white tracking-tight">
-            Reserva de canchas
-          </h2>
+          <div className="flex justify-between items-center">
+            <h2 className="text-lg font-extrabold text-white tracking-tight">
+              Reserva de turnos
+            </h2>
+            <span className="text-xs text-slate-400">
+              {availableSlots.length} {availableSlots.length === 1 ? "horario libre" : "horarios libres"}
+            </span>
+          </div>
 
           {/* Date Selector Navigation Bar */}
-          <div className="space-y-3 pt-2">
+          <div className="space-y-3 pt-1">
             <div className="flex items-center justify-center gap-6 text-white font-bold text-base select-none">
               <button
                 onClick={handlePrevDay}
@@ -326,7 +341,7 @@ export default function CleanClubBookingPage() {
                 <ChevronLeft className="h-5 w-5" />
               </button>
 
-              <span className="capitalize tracking-wide font-semibold text-lg">
+              <span className="capitalize tracking-wide font-semibold text-base sm:text-lg">
                 {shortDateDisplay}
               </span>
 
@@ -345,22 +360,22 @@ export default function CleanClubBookingPage() {
             </div>
           </div>
 
-          {/* Simple Slot List (Clubo Style) */}
+          {/* Simple Slot List */}
           <div className="space-y-2.5 pt-1">
             {availableSlots.length > 0 ? (
               availableSlots.map((slot) => {
-                const startTime = slot.timeSlot.split(" - ")[0]; // e.g. "23:00"
+                const startTime = slot.timeSlot.split(" - ")[0]; // e.g. "14:00"
                 return (
                   <button
                     key={slot.id}
                     onClick={() => handleSelectSlot(slot)}
-                    className="w-full flex items-center justify-between px-4 py-3.5 rounded-xl bg-[#0e141a] hover:bg-slate-800/60 border border-slate-800/60 hover:border-emerald-500/40 transition group text-left"
+                    className="w-full flex items-center justify-between px-4 py-3.5 rounded-2xl bg-[#0e141a] hover:bg-slate-800/60 border border-slate-800/60 hover:border-emerald-500/40 transition group text-left shadow-sm"
                   >
                     <div className="flex items-center gap-3">
                       <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400/80 group-hover:scale-125 transition" />
                       <div className="text-xs sm:text-sm font-semibold text-white">
                         <span className="font-bold text-emerald-300">{startTime} hs</span>
-                        <span className="text-slate-400 font-normal"> | Turno disponible para Padel</span>
+                        <span className="text-slate-400 font-normal"> | Turno disponible para Pádel</span>
                         {courts.length > 1 && (
                           <span className="text-[11px] text-slate-500 font-normal ml-1">
                             ({slot.courtName})
@@ -369,9 +384,9 @@ export default function CleanClubBookingPage() {
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-3">
-                      <span className="text-xs font-semibold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-lg border border-emerald-500/20 group-hover:bg-emerald-500 group-hover:text-slate-950 transition">
-                        Reservar (${slot.deposit.toLocaleString()})
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-semibold text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-xl border border-emerald-500/20 group-hover:bg-emerald-500 group-hover:text-slate-950 transition">
+                        Reservar (Seña ${slot.deposit.toLocaleString()})
                       </span>
                     </div>
                   </button>
@@ -381,7 +396,7 @@ export default function CleanClubBookingPage() {
               <div className="py-12 text-center text-slate-500 text-xs space-y-1">
                 <Lock className="h-6 w-6 text-slate-600 mx-auto mb-2" />
                 <p className="font-semibold text-slate-400">No hay turnos disponibles para este día</p>
-                <p>Probá seleccionando otra fecha con las flechas superiores.</p>
+                <p>Navegá hacia otros días con las flechas superiores.</p>
               </div>
             )}
           </div>
@@ -390,11 +405,11 @@ export default function CleanClubBookingPage() {
         {/* Right Column: Información Card */}
         <div className="bg-[#131b22] border border-slate-800/80 rounded-3xl p-6 sm:p-8 space-y-6 shadow-xl h-fit">
           <div className="space-y-1">
-            <h3 className="text-lg font-extrabold text-white tracking-tight">
-              Información
+            <h3 className="text-base font-extrabold text-white tracking-tight">
+              Información del Complejo
             </h3>
             <p className="text-xs text-slate-400 font-medium">
-              Complejo deportivo {clubDisplayName}
+              {clubDisplayName}
             </p>
           </div>
 
@@ -403,7 +418,7 @@ export default function CleanClubBookingPage() {
               <MapPin className="h-4 w-4 text-slate-400 flex-shrink-0 mt-0.5" />
               <div className="space-y-0.5">
                 <p className="text-slate-200 font-medium leading-relaxed">
-                  {clubDisplayCity}, Entre Ríos, Argentina
+                  {clubDisplayCity}, Argentina
                 </p>
               </div>
             </div>
@@ -416,16 +431,16 @@ export default function CleanClubBookingPage() {
                 rel="noreferrer"
                 className="text-emerald-400 hover:underline font-semibold flex items-center gap-1.5"
               >
-                <span>{club?.phone || "+54 9 3442 31-1384"}</span>
+                <span>{club?.phone || "+54 9 343 555-1234"}</span>
                 <MessageCircle className="h-3.5 w-3.5 text-emerald-400" />
               </a>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 pt-2 border-t border-slate-800/60">
               <div className="h-4 w-4 flex items-center justify-center text-slate-400 text-xs">
                 🎾
               </div>
-              <span className="text-slate-200 font-medium">Padel</span>
+              <span className="text-slate-200 font-medium">Pádel ({courts.length || 2} Pistas)</span>
             </div>
           </div>
         </div>
@@ -456,7 +471,7 @@ export default function CleanClubBookingPage() {
                     <span className="font-bold text-white capitalize">{shortDateDisplay} — {selectedSlot.timeSlot}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-400">Cancha:</span>
+                    <span className="text-slate-400">Pista:</span>
                     <span className="text-white">{selectedSlot.courtName}</span>
                   </div>
                   <div className="flex justify-between">
