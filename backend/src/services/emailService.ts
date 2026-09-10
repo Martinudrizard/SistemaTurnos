@@ -82,29 +82,20 @@ export async function sendOwnerCredentialsEmail({
 `;
 
   try {
-    const isGmail = smtpHost.includes('gmail') || (smtpUser && smtpUser.endsWith('@gmail.com'));
-    const transporterConfig: any = isGmail
-      ? {
-          service: 'gmail',
-          auth: {
-            user: smtpUser,
-            pass: smtpPass,
-          },
-        }
-      : {
-          host: smtpHost,
-          port: smtpPort,
-          secure: smtpPort === 465,
-          auth: {
-            user: smtpUser,
-            pass: smtpPass,
-          },
-          tls: {
-            rejectUnauthorized: false,
-          },
-        };
-
-    const transporter = nodemailer.createTransport(transporterConfig);
+    const transporter = nodemailer.createTransport({
+      host: 'smtp.gmail.com',
+      port: 465,
+      secure: true,
+      auth: {
+        user: smtpUser,
+        pass: smtpPass,
+      },
+      // Force IPv4 to prevent ENETUNREACH on Railway/Cloud
+      family: 4,
+      tls: {
+        rejectUnauthorized: false,
+      },
+    } as any);
 
     const info = await transporter.sendMail({
       from: `"PadelHub Core" <${fromEmail}>`,

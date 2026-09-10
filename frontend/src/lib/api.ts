@@ -1,5 +1,5 @@
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || 'https://padel-saas-backend-production.up.railway.app';
+  process.env.NEXT_PUBLIC_API_URL || 'https://padel-saas-backend-production-a91f.up.railway.app';
 
 export interface CreateClubDTO {
   name: string;

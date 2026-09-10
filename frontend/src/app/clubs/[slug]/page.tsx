@@ -148,18 +148,18 @@ export default function DynamicClubBookingPage() {
 
   const loadClubData = async () => {
     try {
-      const clubsRes = await fetch("https://padel-saas-backend-production.up.railway.app/api/clubs");
+      const clubsRes = await fetch("https://padel-saas-backend-production-a91f.up.railway.app/api/clubs");
       if (clubsRes.ok) {
         const clubs: Club[] = await clubsRes.json();
         const matchedClub = clubs.find((c) => c.slug === slugParam) || clubs[0];
         if (matchedClub) {
           setClub(matchedClub);
-          const courtsRes = await fetch(`https://padel-saas-backend-production.up.railway.app/api/courts/${matchedClub.id}`);
+          const courtsRes = await fetch(`https://padel-saas-backend-production-a91f.up.railway.app/api/courts/${matchedClub.id}`);
           if (courtsRes.ok) {
             const courtsData = await courtsRes.json();
             setCourts(courtsData);
           }
-          const resRes = await fetch(`https://padel-saas-backend-production.up.railway.app/api/reservations?clubId=${matchedClub.id}`);
+          const resRes = await fetch(`https://padel-saas-backend-production-a91f.up.railway.app/api/reservations?clubId=${matchedClub.id}`);
           if (resRes.ok) {
             const resData = await resRes.json();
             setReservations(resData);
@@ -281,7 +281,7 @@ export default function DynamicClubBookingPage() {
 
     try {
       const formattedPhone = playerForm.phone.startsWith("+54") ? playerForm.phone : `+54 9 ${playerForm.phone}`;
-      const res = await fetch("https://padel-saas-backend-production.up.railway.app/api/reservations", {
+      const res = await fetch("https://padel-saas-backend-production-a91f.up.railway.app/api/reservations", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -303,7 +303,7 @@ export default function DynamicClubBookingPage() {
       }
 
       // Generate MercadoPago Checkout preference
-      const prefRes = await fetch("https://padel-saas-backend-production.up.railway.app/api/payments/create-preference", {
+      const prefRes = await fetch("https://padel-saas-backend-production-a91f.up.railway.app/api/payments/create-preference", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
