@@ -404,26 +404,34 @@ export default function DynamicClubBookingPage() {
 
       {/* Hero Header Banner */}
       <div className="max-w-6xl mx-auto px-4 sm:px-6 my-6">
-        <div className="relative rounded-3xl overflow-hidden h-44 sm:h-52 bg-gradient-to-r from-[#00D084]/20 via-[#0C1517] to-[#06100E] border border-[#00D084]/20 shadow-2xl flex items-end p-6 sm:p-8">
-          <div className="absolute inset-0 bg-gradient-to-t from-[#06100E] via-transparent to-transparent" />
+        <div className="relative rounded-3xl overflow-hidden h-44 sm:h-56 border border-[#00D084]/25 shadow-2xl flex items-end p-6 sm:p-8 group bg-[#06100E]">
+          {/* Background Padel Court Image */}
+          <img
+            src="https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?auto=format&fit=crop&w=1600&q=80"
+            alt="Cancha de Pádel"
+            className="absolute inset-0 w-full h-full object-cover object-center transform group-hover:scale-105 transition duration-700 opacity-35"
+          />
+          {/* Gradient Overlays for High Contrast & Smooth Dark Blend */}
+          <div className="absolute inset-0 bg-gradient-to-t from-[#06100E] via-[#06100E]/75 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#06100E]/95 via-[#06100E]/60 to-transparent" />
 
           {/* Club Identity */}
           <div className="relative z-10 flex items-center gap-4 sm:gap-6">
-            <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-2xl bg-[#0C1517] border-2 border-[#00D084]/40 flex items-center justify-center p-2 shadow-2xl flex-shrink-0 text-[#00D084] font-extrabold text-xl sm:text-2xl">
+            <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-2xl bg-[#0C1517]/95 backdrop-blur-md border-2 border-[#00D084]/50 flex items-center justify-center p-2 shadow-2xl flex-shrink-0 text-[#00D084] font-extrabold text-xl sm:text-2xl shadow-[#00D084]/15">
               {clubDisplayName.substring(0, 2).toUpperCase()}
             </div>
 
             <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-2xl sm:text-3xl font-extrabold text-[#F1F5F3] tracking-tight">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h1 className="text-2xl sm:text-3xl font-extrabold text-[#F1F5F3] tracking-tight drop-shadow-lg">
                   {clubDisplayName}
                 </h1>
-                <span className="text-[10px] bg-[#00D084]/20 text-[#00D084] border border-[#00D084]/30 px-2 py-0.5 rounded-full font-semibold">
+                <span className="text-[10px] bg-[#00D084]/20 backdrop-blur-sm text-[#00D084] border border-[#00D084]/40 px-2.5 py-0.5 rounded-full font-bold">
                   Oficial
                 </span>
               </div>
-              <p className="text-xs sm:text-sm text-[#8A9B95] font-medium mt-0.5 flex items-center gap-1">
-                <MapPin className="h-3.5 w-3.5 text-[#8A9B95]" /> {clubDisplayCity}
+              <p className="text-xs sm:text-sm text-[#A1B3AC] font-medium mt-1 flex items-center gap-1.5">
+                <MapPin className="h-3.5 w-3.5 text-[#00D084]" /> {clubDisplayCity}
               </p>
             </div>
           </div>
