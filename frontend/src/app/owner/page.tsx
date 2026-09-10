@@ -788,18 +788,38 @@ export default function OwnerDashboard() {
 
               {/* Sección 3: Cuenta de MercadoPago Propia */}
               <div className="bg-[#0C1517] border border-[#16272a] rounded-2xl p-6 space-y-4">
-                <div className="flex items-center gap-2">
-                  <CreditCard className="h-5 w-5 text-[#00D084]" />
-                  <div>
-                    <h2 className="text-base font-bold text-[#F1F5F3]">Cobros con MercadoPago</h2>
-                    <p className="text-xs text-[#8A9B95]">Pegá tus credenciales de MercadoPago para que las señas vayan directo a tu cuenta bancaria</p>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <div className="h-9 w-9 rounded-xl bg-[#00D084]/10 border border-[#00D084]/30 flex items-center justify-center text-[#00D084]">
+                      <CreditCard className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <h2 className="text-base font-bold text-[#F1F5F3]">Cobros Automáticos con Mercado Pago</h2>
+                      <p className="text-xs text-[#8A9B95]">El dinero de las señas ingresa directo a tu cuenta de Mercado Pago</p>
+                    </div>
                   </div>
+                  {clubSettings.mp_access_token ? (
+                    <span className="px-2.5 py-1 rounded-lg bg-[#00D084]/10 border border-[#00D084]/30 text-[#00D084] text-[11px] font-bold">
+                      🟢 Cuenta Vinculada
+                    </span>
+                  ) : (
+                    <span className="px-2.5 py-1 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-300 text-[11px] font-medium">
+                      ⚪ Sin Vincular (Modo Simulación)
+                    </span>
+                  )}
                 </div>
 
-                <div className="space-y-3 pt-2">
+                <div className="p-3.5 rounded-xl bg-[#06100E] border border-[#16272a] text-xs text-[#8A9B95] space-y-1">
+                  <p className="font-semibold text-[#F1F5F3]">¿Cómo obtener tus credenciales de Mercado Pago?</p>
+                  <p>1. Entrá a <a href="https://www.mercadopago.com.ar/developers/panel" target="_blank" rel="noreferrer" className="text-[#00D084] underline font-medium">mercadopago.com.ar/developers/panel</a>.</p>
+                  <p>2. Creá una aplicación o abrí la tuya y andá a <strong>Credenciales de Producción</strong>.</p>
+                  <p>3. Copiá el <strong>Access Token</strong> (empieza con <code>APP_USR-...</code>) y pegalo abajo.</p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
                   <div className="space-y-1">
                     <label className="text-xs text-[#8A9B95] font-medium flex items-center gap-1">
-                      <Key className="h-3 w-3 text-amber-400" /> Access Token de MercadoPago (Producción)
+                      <Key className="h-3 w-3 text-amber-400" /> Access Token de Producción *
                     </label>
                     <input
                       type="password"
@@ -808,7 +828,19 @@ export default function OwnerDashboard() {
                       onChange={(e) => setClubSettings({ ...clubSettings, mp_access_token: e.target.value })}
                       className="w-full bg-[#06100E] border border-[#16272a] focus:border-[#00D084] rounded-xl px-3 py-2 text-xs text-[#F1F5F3] font-mono"
                     />
-                    <p className="text-[10px] text-[#8A9B95]">Obtenelo en mercadopago.com.ar/developers/panel</p>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-xs text-[#8A9B95] font-medium flex items-center gap-1">
+                      <Key className="h-3 w-3 text-[#00D084]" /> Public Key (Opcional)
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="APP_USR-..."
+                      value={clubSettings.mp_public_key || ""}
+                      onChange={(e) => setClubSettings({ ...clubSettings, mp_public_key: e.target.value })}
+                      className="w-full bg-[#06100E] border border-[#16272a] focus:border-[#00D084] rounded-xl px-3 py-2 text-xs text-[#F1F5F3] font-mono"
+                    />
                   </div>
                 </div>
               </div>
