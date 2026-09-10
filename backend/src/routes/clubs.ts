@@ -124,9 +124,19 @@ router.post('/', async (req: Request, res: Response) => {
     return res.status(400).json({ error: 'Nombre del club es requerido' });
   }
 
-  const slug = finalName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+  let baseSlug = finalName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') || 'club';
+  let slug = baseSlug;
 
   try {
+    // Ensure unique slug
+    let counter = 1;
+    while (true) {
+      const slugCheck = await pgPool.query('SELECT id FROM clubs WHERE slug = $1', [slug]);
+      if (slugCheck.rows.length === 0) break;
+      counter++;
+      slug = `${baseSlug}-${counter}`;
+    }
+
     let ownerId = null;
 
     if (finalOwnerEmail) {
