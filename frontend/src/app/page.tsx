@@ -226,7 +226,7 @@ export default function Home() {
     setOpenFaq(openFaq === index ? null : index);
   };
 
-  const whatsappLink = `https://wa.me/5493435551234?text=${encodeURIComponent(
+  const whatsappLink = `https://wa.me/5493447642471?text=${encodeURIComponent(
     `¡Hola! Me interesa contratar PádelHub para mi complejo (${courtsCount} canchas). ¿Podrían brindarme más información?`
   )}`;
 
