@@ -8,9 +8,10 @@ const connectionString = process.env.DATABASE_URL || 'postgresql://postgres:post
 
 export const pgPool = new Pool({
   connectionString,
-  ssl: process.env.DATABASE_URL?.includes('railway') || process.env.DATABASE_URL?.includes('render')
-    ? { rejectUnauthorized: false }
-    : undefined,
+  ssl:
+    process.env.DATABASE_URL && !process.env.DATABASE_URL.includes('localhost') && !process.env.DATABASE_URL.includes('127.0.0.1')
+      ? { rejectUnauthorized: false }
+      : undefined,
 });
 
 pgPool.on('error', (err) => {
