@@ -34,7 +34,7 @@ router.get('/:idOrSlug', async (req: Request, res: Response) => {
   }
 });
 
-// PUT /api/clubs/:id - Update club customization (hours, pricing, light)
+// PUT /api/clubs/:id - Update club customization (hours, pricing, light, status, payments)
 router.put('/:id', async (req: Request, res: Response) => {
   const { id } = req.params;
   const {
@@ -51,6 +51,10 @@ router.put('/:id', async (req: Request, res: Response) => {
     mp_public_key,
     custom_whatsapp_msg,
     ai_bot_enabled,
+    status,
+    payment_status,
+    last_payment_date,
+    monthly_fee,
   } = req.body;
 
   try {
@@ -68,8 +72,12 @@ router.put('/:id', async (req: Request, res: Response) => {
            mp_access_token = COALESCE($10, mp_access_token),
            mp_public_key = COALESCE($11, mp_public_key),
            custom_whatsapp_msg = COALESCE($12, custom_whatsapp_msg),
-           ai_bot_enabled = COALESCE($13, ai_bot_enabled)
-       WHERE id::text = $14 OR slug = $14
+           ai_bot_enabled = COALESCE($13, ai_bot_enabled),
+           status = COALESCE($14, status),
+           payment_status = COALESCE($15, payment_status),
+           last_payment_date = COALESCE($16, last_payment_date),
+           monthly_fee = COALESCE($17, monthly_fee)
+       WHERE id::text = $18 OR slug = $18
        RETURNING *`,
       [
         open_time,
@@ -85,6 +93,10 @@ router.put('/:id', async (req: Request, res: Response) => {
         mp_public_key,
         custom_whatsapp_msg,
         ai_bot_enabled,
+        status,
+        payment_status,
+        last_payment_date,
+        monthly_fee ? Number(monthly_fee) : null,
         id,
       ]
     );

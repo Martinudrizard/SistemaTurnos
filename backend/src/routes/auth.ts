@@ -42,6 +42,12 @@ router.post('/login', async (req: Request, res: Response) => {
       }
     }
 
+    if (user.role === 'owner' && club && club.status === 'inactive') {
+      return res.status(403).json({
+        error: 'Tu cuenta y complejo han sido deshabilitados o dados de baja por el administrador.',
+      });
+    }
+
     const token = jwt.sign(
       {
         userId: user.id,

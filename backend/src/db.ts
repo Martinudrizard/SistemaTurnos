@@ -38,6 +38,10 @@ export const initDb = async () => {
       ALTER TABLE clubs ADD COLUMN IF NOT EXISTS mp_access_token TEXT;
       ALTER TABLE clubs ADD COLUMN IF NOT EXISTS mp_public_key TEXT;
       ALTER TABLE clubs ADD COLUMN IF NOT EXISTS custom_whatsapp_msg TEXT DEFAULT '¡Hola! Te damos la bienvenida a nuestro complejo.';
+      ALTER TABLE clubs ADD COLUMN IF NOT EXISTS status VARCHAR(20) DEFAULT 'active';
+      ALTER TABLE clubs ADD COLUMN IF NOT EXISTS payment_status VARCHAR(20) DEFAULT 'paid';
+      ALTER TABLE clubs ADD COLUMN IF NOT EXISTS last_payment_date VARCHAR(50);
+      ALTER TABLE clubs ADD COLUMN IF NOT EXISTS monthly_fee NUMERIC(10,2) DEFAULT 30000;
       ALTER TABLE reservations ADD COLUMN IF NOT EXISTS booking_type VARCHAR(50) DEFAULT 'casual';
       ALTER TABLE reservations ADD COLUMN IF NOT EXISTS day_of_week INT;
       ALTER TABLE reservations ALTER COLUMN date_str TYPE VARCHAR(100);
@@ -46,7 +50,7 @@ export const initDb = async () => {
       ALTER TABLE reservations ALTER COLUMN player_name TYPE VARCHAR(150);
       ALTER TABLE reservations ALTER COLUMN player_phone TYPE VARCHAR(50);
     `);
-    console.log('✅ Verified club pricing and schedule columns in PostgreSQL!');
+    console.log('✅ Verified club pricing, schedule, and payment columns in PostgreSQL!');
 
     client.release();
   } catch (e: any) {

@@ -29,6 +29,7 @@ interface Club {
   price_night?: number;
   light_start_time?: string;
   deposit_amount?: number;
+  status?: string;
 }
 
 interface Court {
@@ -337,6 +338,30 @@ export default function DynamicClubBookingPage() {
   const clubDisplayName = club?.name || "Complejo de Pádel";
   const clubDisplayCity = club?.city || "Argentina";
   const clubPhoneClean = (club?.phone || "+54 9 343 555-1234").replace(/[^0-9]/g, "");
+
+  if (club && club.status === "inactive") {
+    return (
+      <div className="min-h-screen bg-[#06100E] text-[#F1F5F3] font-sans flex flex-col items-center justify-center p-6 text-center">
+        <div className="h-16 w-16 rounded-2xl bg-[#EF4444]/10 border border-[#EF4444]/30 flex items-center justify-center text-[#EF4444] mb-4">
+          <Trophy className="h-8 w-8 opacity-40" />
+        </div>
+        <h1 className="text-2xl font-bold text-[#F1F5F3] mb-2">{clubDisplayName}</h1>
+        <p className="text-[#8A9B95] text-sm max-w-md mb-6">
+          Este complejo se encuentra temporalmente deshabilitado o fuera de servicio. Por favor comunicate directamente con el club para más información.
+        </p>
+        {club.phone && (
+          <a
+            href={`https://wa.me/${clubPhoneClean}`}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-2 bg-[#00D084] hover:bg-[#4ADE80] text-[#06100E] font-bold px-5 py-2.5 rounded-xl text-xs transition"
+          >
+            Contactar por WhatsApp
+          </a>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#06100E] text-[#F1F5F3] font-sans pb-16">
