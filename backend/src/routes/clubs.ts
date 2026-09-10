@@ -195,8 +195,27 @@ router.post('/', async (req: Request, res: Response) => {
       emailError: emailStatus.error,
     });
   } catch (e: any) {
-    console.error('Error creating club:', e);
-    res.status(500).json({ error: e.message || 'Failed to create club' });
+    const errorDetails = e.detail ? `${e.message} - ${e.detail}` : (e.message || String(e));
+    console.error('Error creating club:', errorDetails, e);
+    res.status(500).json({ error: errorDetails });
+  }
+});
+
+// GET /api/clubs/debug/schema
+router.get('/debug/schema', async (_req: Request, res: Response) => {
+  try {
+    const clubsCols = await pgPool.query(
+      "SELECT column_name, data_type FROM information_schema.columns WHERE table_name = 'clubs'"
+    );
+    const usersCols = await pgPool.query(
+      "SELECT column_name, data_type FROM information_schema.columns WHERE table_name = 'users'"
+    );
+    res.json({
+      clubs: clubsCols.rows,
+      users: usersCols.rows,
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
   }
 });
 
