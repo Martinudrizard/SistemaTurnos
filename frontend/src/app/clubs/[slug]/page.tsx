@@ -681,20 +681,70 @@ export default function DynamicClubBookingPage() {
             )}
 
             {checkoutStep === "success" && (
-              <div className="text-center space-y-4 py-4">
-                <div className="h-14 w-14 rounded-full bg-[#00D084]/10 border border-[#00D084]/30 flex items-center justify-center text-[#00D084] mx-auto">
-                  <CheckCircle2 className="h-8 w-8" />
+              <div className="text-center space-y-5 py-2">
+                <div className="h-16 w-16 rounded-3xl bg-[#00D084]/15 border border-[#00D084]/40 flex items-center justify-center text-[#00D084] mx-auto shadow-xl shadow-[#00D084]/20 animate-bounce">
+                  <CheckCircle2 className="h-9 w-9" />
                 </div>
                 <div>
-                  <h4 className="text-xl font-extrabold text-[#F1F5F3]">¡Reserva Confirmada!</h4>
+                  <h4 className="text-2xl font-black text-[#F1F5F3]">¡Reserva Confirmada!</h4>
                   <p className="text-xs text-[#8A9B95] mt-1">Registrada con éxito en {clubDisplayName}</p>
                 </div>
-                <button
-                  onClick={() => setIsCheckoutOpen(false)}
-                  className="w-full bg-[#16272a] hover:bg-[#1f373b] text-[#F1F5F3] font-semibold py-2.5 rounded-xl text-xs transition"
-                >
-                  Cerrar
-                </button>
+
+                {/* Modern Confirmation Voucher */}
+                <div className="bg-[#06100E] border border-[#00D084]/30 rounded-2xl p-4 text-xs space-y-2.5 text-left shadow-inner">
+                  <div className="flex justify-between items-center border-b border-[#16272a] pb-2">
+                    <span className="text-[#8A9B95] font-medium">Jugador:</span>
+                    <span className="text-[#F1F5F3] font-bold">{playerForm.firstName} {playerForm.lastName}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-[#8A9B95]">Cancha:</span>
+                    <span className="text-[#00D084] font-bold">{selectedSlotGroup.availableCourts.find((c) => c.id === selectedCourtId)?.name || "Cancha 1"}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-[#8A9B95]">Fecha y Horario:</span>
+                    <span className="text-[#F1F5F3] font-semibold capitalize">{shortDateDisplay} • {selectedSlotGroup.timeSlot} hs</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-[#8A9B95]">Seña Abonada:</span>
+                    <span className="text-[#00D084] font-bold">${selectedSlotGroup.deposit.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between items-center border-t border-[#16272a] pt-2">
+                    <span className="text-[#8A9B95] font-medium">Resta abonar en el club:</span>
+                    <span className="font-extrabold text-amber-400 text-sm">
+                      ${Math.max(0, selectedSlotGroup.price - selectedSlotGroup.deposit).toLocaleString()}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Direct WhatsApp Receipt CTA */}
+                <div className="space-y-2 pt-1">
+                  <a
+                    href={`https://wa.me/${clubPhoneClean}?text=${encodeURIComponent(
+                      `🎾 *¡Hola! Acabo de reservar un turno en ${clubDisplayName}:*\n\n` +
+                      `📅 *Fecha:* ${shortDateDisplay}\n` +
+                      `⏰ *Horario:* ${selectedSlotGroup.timeSlot} hs\n` +
+                      `📍 *Cancha:* ${selectedSlotGroup.availableCourts.find((c) => c.id === selectedCourtId)?.name || "Cancha 1"}\n` +
+                      `👤 *Jugador:* ${playerForm.firstName} ${playerForm.lastName}\n` +
+                      `📱 *Teléfono:* ${playerForm.phone}\n` +
+                      `💵 *Seña:* $${selectedSlotGroup.deposit.toLocaleString()}\n` +
+                      `💰 *Resta abonar en el club:* $${Math.max(0, selectedSlotGroup.price - selectedSlotGroup.deposit).toLocaleString()}\n\n` +
+                      `¡Comprobante generado por PádelHub!`
+                    )}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="w-full flex items-center justify-center gap-2.5 bg-[#00D084] hover:bg-[#4ADE80] text-[#06100E] font-black py-3.5 rounded-xl text-sm transition shadow-xl shadow-[#00D084]/25 hover:scale-[1.02]"
+                  >
+                    <MessageCircle className="h-5 w-5" />
+                    <span>Enviar Comprobante por WhatsApp</span>
+                  </a>
+
+                  <button
+                    onClick={() => setIsCheckoutOpen(false)}
+                    className="w-full bg-[#16272a] hover:bg-[#1f373b] text-[#8A9B95] hover:text-[#F1F5F3] font-semibold py-2.5 rounded-xl text-xs transition"
+                  >
+                    Listo, cerrar
+                  </button>
+                </div>
               </div>
             )}
           </div>

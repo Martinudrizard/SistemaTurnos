@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import { pgPool } from '../db';
+import { sendOwnerCredentialsEmail } from '../services/emailService';
 
 const router = Router();
 
@@ -148,6 +149,17 @@ router.post('/', async (req: Request, res: Response) => {
        ($1, 'Cancha 2 (Sintético)', 'Césped Sintético Pro', false)`,
       [newClub.id]
     );
+
+    // Send welcome email with credentials to the owner asynchronously
+    if (finalOwnerEmail) {
+      sendOwnerCredentialsEmail({
+        toEmail: finalOwnerEmail.trim(),
+        ownerName: finalOwnerName || finalName,
+        clubName: finalName,
+        password: password || 'padel123',
+        publicClubUrl: `https://sistema-turnos-gilt.vercel.app/clubs/${slug}`,
+      }).catch((err) => console.error('Error sending credentials email:', err));
+    }
 
     res.status(201).json(newClub);
   } catch (e: any) {
