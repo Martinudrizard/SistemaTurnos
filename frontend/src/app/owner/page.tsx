@@ -199,7 +199,7 @@ export default function OwnerDashboard() {
   const loadClubData = async (clubId: string | null) => {
     try {
       const targetId = clubId || "7edcad2d-6ec3-4d7a-af7a-43bc3aea0ddf";
-      const clubRes = await fetch(`https://padel-saas-backend-production-a91f.up.railway.app/api/clubs/${targetId}`);
+      const clubRes = await fetch(`https://padel-saas-backend-production.up.railway.app/api/clubs/${targetId}`);
       if (clubRes.ok) {
         const data = await clubRes.json();
         setClubSettings({
@@ -221,13 +221,13 @@ export default function OwnerDashboard() {
         });
       }
 
-      const courtsRes = await fetch(`https://padel-saas-backend-production-a91f.up.railway.app/api/courts/${targetId}`);
+      const courtsRes = await fetch(`https://padel-saas-backend-production.up.railway.app/api/courts/${targetId}`);
       if (courtsRes.ok) {
         const courtsData = await courtsRes.json();
         if (courtsData.length > 0) setCourts(courtsData);
       }
 
-      const bookingsRes = await fetch(`https://padel-saas-backend-production-a91f.up.railway.app/api/reservations?clubId=${targetId}`);
+      const bookingsRes = await fetch(`https://padel-saas-backend-production.up.railway.app/api/reservations?clubId=${targetId}`);
       if (bookingsRes.ok) {
         const bookingsData = await bookingsRes.json();
         setBookings(bookingsData);
@@ -242,7 +242,7 @@ export default function OwnerDashboard() {
     setSaveMsg("");
     try {
       const targetId = clubSettings.id || user?.clubId || "7edcad2d-6ec3-4d7a-af7a-43bc3aea0ddf";
-      const res = await fetch(`https://padel-saas-backend-production-a91f.up.railway.app/api/clubs/${targetId}`, {
+      const res = await fetch(`https://padel-saas-backend-production.up.railway.app/api/clubs/${targetId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(clubSettings),
@@ -336,7 +336,7 @@ export default function OwnerDashboard() {
 
     const targetClubId = clubSettings.id || user?.clubId || "7edcad2d-6ec3-4d7a-af7a-43bc3aea0ddf";
     try {
-      const res = await fetch("https://padel-saas-backend-production-a91f.up.railway.app/api/reservations", {
+      const res = await fetch("https://padel-saas-backend-production.up.railway.app/api/reservations", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -370,7 +370,7 @@ export default function OwnerDashboard() {
 
   const handleDeleteBooking = async (bookingId: string) => {
     try {
-      const res = await fetch(`https://padel-saas-backend-production-a91f.up.railway.app/api/reservations/${bookingId}`, {
+      const res = await fetch(`https://padel-saas-backend-production.up.railway.app/api/reservations/${bookingId}`, {
         method: "DELETE",
       });
       if (res.ok) {

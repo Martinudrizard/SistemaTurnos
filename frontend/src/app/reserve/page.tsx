@@ -19,7 +19,7 @@ export default function ReserveIndexPage() {
   useEffect(() => {
     async function fetchClubs() {
       try {
-        const res = await fetch("https://padel-saas-backend-production-a91f.up.railway.app/api/clubs");
+        const res = await fetch("https://padel-saas-backend-production.up.railway.app/api/clubs");
         if (res.ok) {
           const data = await res.json();
           setClubs(data);

@@ -66,7 +66,7 @@ export default function SuperAdminPage() {
 
   const loadClubs = async () => {
     try {
-      const res = await fetch("https://padel-saas-backend-production-a91f.up.railway.app/api/clubs");
+      const res = await fetch("https://padel-saas-backend-production.up.railway.app/api/clubs");
       if (res.ok) {
         const data = await res.json();
         setClubs(data);
@@ -83,7 +83,7 @@ export default function SuperAdminPage() {
   const handleToggleStatus = async (club: Club) => {
     const newStatus = club.status === "inactive" ? "active" : "inactive";
     try {
-      const res = await fetch(`https://padel-saas-backend-production-a91f.up.railway.app/api/clubs/${club.id}`, {
+      const res = await fetch(`https://padel-saas-backend-production.up.railway.app/api/clubs/${club.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: newStatus }),
@@ -114,7 +114,7 @@ export default function SuperAdminPage() {
     });
 
     try {
-      const res = await fetch(`https://padel-saas-backend-production-a91f.up.railway.app/api/clubs/${club.id}`, {
+      const res = await fetch(`https://padel-saas-backend-production.up.railway.app/api/clubs/${club.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -145,7 +145,7 @@ export default function SuperAdminPage() {
     if (!confirmDelete) return;
 
     try {
-      const res = await fetch(`https://padel-saas-backend-production-a91f.up.railway.app/api/clubs/${club.id}`, {
+      const res = await fetch(`https://padel-saas-backend-production.up.railway.app/api/clubs/${club.id}`, {
         method: "DELETE",
       });
 
@@ -167,7 +167,7 @@ export default function SuperAdminPage() {
     setMsg("");
 
     try {
-      const res = await fetch("https://padel-saas-backend-production-a91f.up.railway.app/api/clubs", {
+      const res = await fetch("https://padel-saas-backend-production.up.railway.app/api/clubs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -212,7 +212,7 @@ export default function SuperAdminPage() {
     if (!selectedClubForCourt) return;
 
     try {
-      const res = await fetch("https://padel-saas-backend-production-a91f.up.railway.app/api/courts", {
+      const res = await fetch("https://padel-saas-backend-production.up.railway.app/api/courts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
