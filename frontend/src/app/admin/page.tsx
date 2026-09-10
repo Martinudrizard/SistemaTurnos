@@ -257,7 +257,7 @@ export default function SuperAdminPage() {
   const totalCourtsAllowed = clubs.reduce((acc, c) => acc + (Number(c.max_courts) || 4), 0);
   const estimatedMonthlyRevenue = clubs
     .filter((c) => c.payment_status === "paid" || !c.payment_status)
-    .reduce((acc, c) => acc + (c.monthly_fee ? Number(c.monthly_fee) : (Number(c.max_courts) || 4) * 15000), 0);
+    .reduce((acc, c) => acc + (Number(c.max_courts) || 4) * 15000, 0);
 
   return (
     <div className="min-h-screen bg-[#06100E] text-[#F1F5F3] font-sans">
@@ -428,7 +428,8 @@ export default function SuperAdminPage() {
                   filteredClubs.map((club) => {
                     const isInactive = club.status === "inactive";
                     const isPaid = club.payment_status === "paid" || !club.payment_status;
-                    const monthlyFee = club.monthly_fee || (Number(club.max_courts) || 4) * 15000;
+                    const courtsCount = Number(club.max_courts) || 4;
+                    const monthlyFee = courtsCount * 15000;
 
                     return (
                       <tr
