@@ -36,12 +36,6 @@ export async function sendOwnerCredentialsEmail({
   console.log(`[EmailService] Intento de envío a: ${toEmail} para el club "${clubName}"`);
   console.log(`[EmailService] Configuración SMTP: host=${smtpHost}, user=${smtpUser ? smtpUser.replace(/(.{3}).*@/, '$1***@') : 'NO_CONFIGURADO'}, pass_len=${smtpPass.length}`);
 
-  if (!smtpUser || !smtpPass) {
-    const msg = 'SMTP_USER o SMTP_PASS no configurados en las variables de entorno de Railway.';
-    console.warn(`[EmailService] ${msg}`);
-    return { success: false, error: msg };
-  }
-
   const htmlContent = `
 <!DOCTYPE html>
 <html lang="es">
@@ -80,6 +74,45 @@ export async function sendOwnerCredentialsEmail({
 </body>
 </html>
 `;
+
+  // 1. Si existe RESEND_API_KEY, enviar por HTTPS REST API (garantizado 100% en Railway sin bloqueo de puertos)
+  const resendApiKey = process.env.RESEND_API_KEY?.trim();
+  if (resendApiKey) {
+    try {
+      const res = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${resendApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          from: process.env.RESEND_FROM?.trim() || 'PadelHub <onboarding@resend.dev>',
+          to: [toEmail],
+          subject: `🎾 Tus credenciales de acceso a PadelHub - ${clubName}`,
+          html: htmlContent,
+        }),
+      });
+
+      const data: any = await res.json();
+      if (res.ok) {
+        console.log(`[EmailService] ¡Correo enviado vía Resend API a ${toEmail}! Id:`, data.id);
+        return { success: true, messageId: data.id };
+      } else {
+        console.error('[EmailService] Resend API Error:', data);
+        return { success: false, error: data.message || 'Error en Resend API' };
+      }
+    } catch (err: any) {
+      console.error('[EmailService] Error al conectar con Resend HTTP API:', err);
+      return { success: false, error: err.message };
+    }
+  }
+
+  // 2. Si no hay Resend, intentar SMTP directo
+  if (!smtpUser || !smtpPass) {
+    const msg = 'SMTP_USER o SMTP_PASS no configurados en Railway.';
+    console.warn(`[EmailService] ${msg}`);
+    return { success: false, error: msg };
+  }
 
   try {
     const transporter = nodemailer.createTransport({
