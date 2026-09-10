@@ -92,10 +92,13 @@ export default function OwnerDashboard() {
   const [user, setUser] = useState<any>(null);
   const [activeTab, setActiveTab] = useState<"grid" | "courts" | "pricing">("grid");
   
-  const [currentDateIso, setCurrentDateIso] = useState<string>("2026-09-09");
+  const [currentDateIso, setCurrentDateIso] = useState<string>("2026-09-10");
   const dateInputRef = useRef<HTMLInputElement>(null);
 
-  const [courts, setCourts] = useState<Court[]>([]);
+  const [courts, setCourts] = useState<Court[]>([
+    { id: "c1", club_id: "default", name: "Cancha 1 (Cristal)", surface: "Cristal Panorámico", indoor: true, is_active: true },
+    { id: "c2", club_id: "default", name: "Cancha 2 (Sintético)", surface: "Césped Sintético Pro", indoor: false, is_active: true },
+  ]);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [clubSettings, setClubSettings] = useState<ClubSettings>({
     id: "",
@@ -103,7 +106,7 @@ export default function OwnerDashboard() {
     slug: "roca",
     phone: "+54 9 343 555-1234",
     city: "Argentina",
-    open_time: "14:00",
+    open_time: "11:00",
     close_time: "01:00",
     price_day: 14000,
     price_night: 18000,
@@ -153,7 +156,7 @@ export default function OwnerDashboard() {
           slug: data.slug || "roca",
           phone: data.phone || "+54 9 343 555-1234",
           city: data.city || "Argentina",
-          open_time: data.open_time || "14:00",
+          open_time: data.open_time || "11:00",
           close_time: data.close_time || "01:00",
           price_day: Number(data.price_day) || 14000,
           price_night: Number(data.price_night) || 18000,
@@ -217,7 +220,7 @@ export default function OwnerDashboard() {
   };
 
   const handleToday = () => {
-    setCurrentDateIso("2026-09-09");
+    setCurrentDateIso("2026-09-10");
   };
 
   const publicUrl = `https://sistema-turnos-gilt.vercel.app/clubs/${clubSettings.slug || "roca"}`;
@@ -229,6 +232,8 @@ export default function OwnerDashboard() {
   };
 
   const TIME_SLOTS = [
+    "11:00 - 12:30",
+    "12:30 - 14:00",
     "14:00 - 15:30",
     "15:30 - 17:00",
     "17:00 - 18:30",
