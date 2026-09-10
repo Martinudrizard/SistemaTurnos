@@ -294,137 +294,66 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Hero Section with Dashboard Preview */}
-      <section className="relative overflow-hidden pt-12 pb-20 px-4 sm:px-6">
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-[#00D084]/10 rounded-full blur-[140px] pointer-events-none -z-10" />
+      {/* Hero Section */}
+      <section className="relative overflow-hidden pt-16 sm:pt-24 pb-20 sm:pb-28 px-4 sm:px-6">
+        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] bg-[#00D084]/15 rounded-full blur-[160px] pointer-events-none -z-10" />
 
-        <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
-          {/* Left Column: Copy & Actions */}
-          <div className="lg:col-span-6 space-y-6 text-left">
-            <h1 className="text-3xl sm:text-5xl font-black text-[#F1F5F3] tracking-tight leading-[1.15]">
-              Automatizá tus turnos, cobrá señas y <span className="text-[#00D084]">llená tus canchas.</span>
-            </h1>
+        <div className="max-w-4xl mx-auto space-y-8 flex flex-col items-center text-center">
+          <ScrollReveal direction="up">
+            <div className="space-y-6 flex flex-col items-center">
+              <h1 className="text-4xl sm:text-6xl md:text-7xl font-black text-[#F1F5F3] tracking-tight leading-[1.1] max-w-3xl">
+                Automatizá tus turnos, cobrá señas y <span className="text-[#00D084]">llená tus canchas.</span>
+              </h1>
 
-            <p className="text-[#8A9B95] max-w-xl text-sm sm:text-base leading-relaxed">
-              Gestioná tu complejo de pádel de forma simple, rápida y profesional. Con la tecnología que necesitás.
-            </p>
+              <p className="text-[#8A9B95] max-w-2xl text-base sm:text-xl leading-relaxed font-normal">
+                Gestioná tu complejo de pádel de forma simple, rápida y profesional. Con la tecnología que necesitás.
+              </p>
+            </div>
+          </ScrollReveal>
 
-            <div className="flex flex-col sm:flex-row items-center gap-3 pt-2">
+          <ScrollReveal direction="up" delay={150}>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2 w-full sm:w-auto">
               <a
                 href={whatsappLink}
                 target="_blank"
                 rel="noreferrer"
-                className="w-full sm:w-auto flex items-center justify-center gap-2 bg-[#00D084] hover:bg-[#4ADE80] text-[#06100E] font-extrabold px-6 py-3.5 rounded-2xl text-xs sm:text-sm transition shadow-xl shadow-[#00D084]/20 hover:scale-105"
+                className="w-full sm:w-auto flex items-center justify-center gap-2.5 bg-[#00D084] hover:bg-[#4ADE80] text-[#06100E] font-extrabold px-8 py-4 rounded-2xl text-sm sm:text-base transition shadow-xl shadow-[#00D084]/25 hover:scale-105"
               >
-                <MessageCircle className="h-4 w-4" />
+                <MessageCircle className="h-5 w-5" />
                 <span>Solicitar Demo por WhatsApp</span>
               </a>
 
               <Link
                 href="/clubs/smash-padel-colon"
-                className="w-full sm:w-auto flex items-center justify-center gap-2 bg-[#0C1517] hover:bg-[#121f22] text-[#F1F5F3] font-semibold px-6 py-3.5 rounded-2xl text-xs sm:text-sm border border-[#00D084]/30 hover:border-[#00D084] transition"
+                className="w-full sm:w-auto flex items-center justify-center gap-2 bg-[#0C1517] hover:bg-[#121f22] text-[#F1F5F3] font-semibold px-8 py-4 rounded-2xl text-sm sm:text-base border border-[#00D084]/30 hover:border-[#00D084] transition"
               >
                 <span>Ver Web de Reservas en Vivo</span>
-                <ArrowRight className="h-4 w-4 text-[#00D084]" />
+                <ArrowRight className="h-5 w-5 text-[#00D084]" />
               </Link>
             </div>
+          </ScrollReveal>
 
-            {/* Social Proof Stats */}
-            <div className="pt-6 grid grid-cols-2 sm:grid-cols-4 gap-3 border-t border-[#0C1517] text-left">
-              <div className="p-3 bg-[#0C1517] border border-[#00D084]/20 rounded-xl">
-                <div className="text-lg font-black text-[#00D084]">100%</div>
-                <div className="text-[11px] text-[#8A9B95]">Señas aseguradas</div>
+          {/* Social Proof Stats */}
+          <ScrollReveal direction="up" delay={250}>
+            <div className="pt-6 grid grid-cols-2 sm:grid-cols-4 gap-3.5 sm:gap-4 w-full max-w-3xl">
+              <div className="p-4 sm:p-5 bg-[#0C1517] border border-[#00D084]/20 hover:border-[#00D084]/50 rounded-2xl transition shadow-lg text-center">
+                <div className="text-2xl sm:text-3xl font-black text-[#00D084]">100%</div>
+                <div className="text-xs sm:text-sm text-[#8A9B95] mt-1 font-medium">Señas aseguradas</div>
               </div>
-              <div className="p-3 bg-[#0C1517] border border-[#00D084]/20 rounded-xl">
-                <div className="text-lg font-black text-[#F1F5F3]">0</div>
-                <div className="text-[11px] text-[#8A9B95]">Turnos duplicados</div>
+              <div className="p-4 sm:p-5 bg-[#0C1517] border border-[#00D084]/20 hover:border-[#00D084]/50 rounded-2xl transition shadow-lg text-center">
+                <div className="text-2xl sm:text-3xl font-black text-[#F1F5F3]">0</div>
+                <div className="text-xs sm:text-sm text-[#8A9B95] mt-1 font-medium">Turnos duplicados</div>
               </div>
-              <div className="p-3 bg-[#0C1517] border border-[#00D084]/20 rounded-xl">
-                <div className="text-lg font-black text-[#00D084]">24/7</div>
-                <div className="text-[11px] text-[#8A9B95]">Reservas activas</div>
+              <div className="p-4 sm:p-5 bg-[#0C1517] border border-[#00D084]/20 hover:border-[#00D084]/50 rounded-2xl transition shadow-lg text-center">
+                <div className="text-2xl sm:text-3xl font-black text-[#00D084]">24/7</div>
+                <div className="text-xs sm:text-sm text-[#8A9B95] mt-1 font-medium">Reservas activas</div>
               </div>
-              <div className="p-3 bg-[#0C1517] border border-[#00D084]/20 rounded-xl">
-                <div className="text-lg font-black text-[#F1F5F3]">$15.000</div>
-                <div className="text-[11px] text-[#8A9B95]">Por cancha al mes</div>
+              <div className="p-4 sm:p-5 bg-[#0C1517] border border-[#00D084]/20 hover:border-[#00D084]/50 rounded-2xl transition shadow-lg text-center">
+                <div className="text-2xl sm:text-3xl font-black text-[#F1F5F3]">$15.000</div>
+                <div className="text-xs sm:text-sm text-[#8A9B95] mt-1 font-medium">Por cancha al mes</div>
               </div>
             </div>
-          </div>
-
-          {/* Right Column: High-End Live Dashboard Preview Mockup */}
-          <div className="lg:col-span-6 flex justify-center">
-            <ScrollReveal direction="right" delay={100}>
-              <div className="w-full max-w-[520px] bg-[#0C1517] border border-[#00D084]/30 rounded-3xl p-5 shadow-2xl space-y-4 relative overflow-hidden group hover:border-[#00D084]/60 transition duration-300">
-                {/* Dashboard Topbar */}
-                <div className="flex items-center justify-between border-b border-[#121f22] pb-3">
-                  <div className="flex items-center gap-2">
-                    <div className="h-7 w-7 rounded-lg bg-[#00D084]/15 border border-[#00D084]/40 flex items-center justify-center text-[#00D084]">
-                      <Trophy className="h-4 w-4" />
-                    </div>
-                    <span className="text-xs font-extrabold text-[#F1F5F3]">PádelHub Admin</span>
-                  </div>
-                  <div className="text-[11px] text-[#8A9B95] font-medium flex items-center gap-1.5">
-                    <span className="h-2 w-2 rounded-full bg-[#00D084] animate-pulse"></span>
-                    <span>Hoy, en vivo</span>
-                  </div>
-                </div>
-
-                {/* Dashboard Metric Badges */}
-                <div className="grid grid-cols-4 gap-2 text-center text-xs">
-                  <div className="bg-[#06100E] border border-[#121f22] p-2.5 rounded-xl">
-                    <div className="font-extrabold text-[#00D084] text-sm sm:text-base">$482.500</div>
-                    <div className="text-[9px] text-[#8A9B95]">Ingresos</div>
-                  </div>
-                  <div className="bg-[#06100E] border border-[#121f22] p-2.5 rounded-xl">
-                    <div className="font-extrabold text-[#F1F5F3] text-sm sm:text-base">38</div>
-                    <div className="text-[9px] text-[#8A9B95]">Turnos</div>
-                  </div>
-                  <div className="bg-[#06100E] border border-[#121f22] p-2.5 rounded-xl">
-                    <div className="font-extrabold text-[#4ADE80] text-sm sm:text-base">24</div>
-                    <div className="text-[9px] text-[#8A9B95]">Señas MP</div>
-                  </div>
-                  <div className="bg-[#06100E] border border-[#121f22] p-2.5 rounded-xl">
-                    <div className="font-extrabold text-[#F1F5F3] text-sm sm:text-base">12</div>
-                    <div className="text-[9px] text-[#8A9B95]">Fijos</div>
-                  </div>
-                </div>
-
-                {/* Live Courts Slots Preview */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[10px]">
-                  {/* Cancha 1 */}
-                  <div className="bg-[#06100E] border border-[#121f22] p-2.5 rounded-xl space-y-1.5">
-                    <div className="font-bold text-[#F1F5F3] text-[11px] border-b border-[#121f22] pb-1">Cancha 1</div>
-                    <div className="bg-[#00D084]/15 text-[#4ADE80] border border-[#00D084]/30 px-1.5 py-1 rounded font-bold">17:00 • Ocupado</div>
-                    <div className="bg-[#0C1517] text-[#8A9B95] border border-dashed border-[#121f22] px-1.5 py-1 rounded text-center">+ 18:30 Libre</div>
-                    <div className="bg-[#00D084]/15 text-[#4ADE80] border border-[#00D084]/30 px-1.5 py-1 rounded font-bold">20:00 • Ocupado</div>
-                  </div>
-
-                  {/* Cancha 2 */}
-                  <div className="bg-[#06100E] border border-[#121f22] p-2.5 rounded-xl space-y-1.5">
-                    <div className="font-bold text-[#F1F5F3] text-[11px] border-b border-[#121f22] pb-1">Cancha 2</div>
-                    <div className="bg-[#0C1517] text-[#8A9B95] border border-dashed border-[#121f22] px-1.5 py-1 rounded text-center">+ 17:00 Libre</div>
-                    <div className="bg-[#00D084]/15 text-[#4ADE80] border border-[#00D084]/30 px-1.5 py-1 rounded font-bold">18:30 • Ocupado</div>
-                    <div className="bg-[#00D084]/15 text-[#4ADE80] border border-[#00D084]/30 px-1.5 py-1 rounded font-bold">20:00 • Ocupado</div>
-                  </div>
-
-                  {/* Cancha 3 */}
-                  <div className="bg-[#06100E] border border-[#121f22] p-2.5 rounded-xl space-y-1.5">
-                    <div className="font-bold text-[#F1F5F3] text-[11px] border-b border-[#121f22] pb-1">Cancha 3</div>
-                    <div className="bg-[#00D084]/15 text-[#4ADE80] border border-[#00D084]/30 px-1.5 py-1 rounded font-bold">17:00 • Ocupado</div>
-                    <div className="bg-[#00D084]/15 text-[#4ADE80] border border-[#00D084]/30 px-1.5 py-1 rounded font-bold">18:30 • Ocupado</div>
-                    <div className="bg-[#0C1517] text-[#8A9B95] border border-dashed border-[#121f22] px-1.5 py-1 rounded text-center">+ 20:00 Libre</div>
-                  </div>
-
-                  {/* Cancha 4 */}
-                  <div className="bg-[#06100E] border border-[#121f22] p-2.5 rounded-xl space-y-1.5">
-                    <div className="font-bold text-[#F1F5F3] text-[11px] border-b border-[#121f22] pb-1">Cancha 4</div>
-                    <div className="bg-[#00D084]/15 text-[#4ADE80] border border-[#00D084]/30 px-1.5 py-1 rounded font-bold">17:00 • Ocupado</div>
-                    <div className="bg-[#0C1517] text-[#8A9B95] border border-dashed border-[#121f22] px-1.5 py-1 rounded text-center">+ 18:30 Libre</div>
-                    <div className="bg-[#00D084]/15 text-[#4ADE80] border border-[#00D084]/30 px-1.5 py-1 rounded font-bold">20:00 • Ocupado</div>
-                  </div>
-                </div>
-              </div>
-            </ScrollReveal>
-          </div>
+          </ScrollReveal>
         </div>
       </section>
 
