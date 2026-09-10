@@ -66,7 +66,9 @@ const MONTHS = [
 
 const DAYS_LOWER = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"];
 
-const TIME_SLOTS = [
+export const ALL_90MIN_SLOTS = [
+  "08:00 - 09:30",
+  "09:30 - 11:00",
   "11:00 - 12:30",
   "12:30 - 14:00",
   "14:00 - 15:30",
@@ -76,16 +78,60 @@ const TIME_SLOTS = [
   "20:00 - 21:30",
   "21:30 - 23:00",
   "23:00 - 00:30",
+  "00:30 - 02:00",
 ];
+
+function toMinutes(t: string): number {
+  const [h, m] = t.split(":").map(Number);
+  return (h || 0) * 60 + (m || 0);
+}
+
+function isSlotWithinClubHours(
+  timeSlot: string,
+  openTime: string = "11:00",
+  closeTime: string = "01:00"
+): boolean {
+  const slotStartTime = timeSlot.split(" - ")[0]; // e.g. "14:00"
+  const slotStartMin = toMinutes(slotStartTime);
+
+  let openMin = toMinutes(openTime);
+  let closeMin = toMinutes(closeTime);
+
+  // If closing time is next day after midnight (e.g. 00:30, 01:00, 02:00)
+  if (closeMin <= openMin) {
+    closeMin += 24 * 60;
+  }
+
+  let adjustedSlotMin = slotStartMin;
+  if (adjustedSlotMin < openMin && adjustedSlotMin < (closeMin - 24 * 60)) {
+    adjustedSlotMin += 24 * 60;
+  }
+
+  return adjustedSlotMin >= openMin && adjustedSlotMin < closeMin;
+}
+
+function getTodayIsoString(): string {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, "0");
+  const d = String(now.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
+function getCurrentTimeMinutes(): number {
+  const now = new Date();
+  return now.getHours() * 60 + now.getMinutes();
+}
 
 export default function DynamicClubBookingPage() {
   const params = useParams();
   const slugParam = typeof params?.slug === "string" ? params.slug : "latoska-er";
 
+  const todayIso = getTodayIsoString();
   const [club, setClub] = useState<Club | null>(null);
   const [courts, setCourts] = useState<Court[]>([]);
   const [reservations, setReservations] = useState<Reservation[]>([]);
-  const [selectedDateIso, setSelectedDateIso] = useState<string>("2026-09-10");
+  const [selectedDateIso, setSelectedDateIso] = useState<string>(getTodayIsoString());
   const [selectedSlotGroup, setSelectedSlotGroup] = useState<AvailableSlotGroup | null>(null);
   const [selectedCourtId, setSelectedCourtId] = useState<string>("");
   const [loading, setLoading] = useState(true);
@@ -141,7 +187,9 @@ export default function DynamicClubBookingPage() {
   const handlePrevDay = () => {
     const d = new Date(currY, currM - 1, currD);
     d.setDate(d.getDate() - 1);
-    setSelectedDateIso(d.toISOString().split("T")[0]);
+    const prevIso = d.toISOString().split("T")[0];
+    if (prevIso < todayIso) return; // Prevent navigating before today
+    setSelectedDateIso(prevIso);
   };
 
   const handleNextDay = () => {
@@ -154,6 +202,8 @@ export default function DynamicClubBookingPage() {
   const priceNight = club?.price_night ?? 18000;
   const lightStart = club?.light_start_time || "18:30";
   const depositAmount = club?.deposit_amount ?? 8000;
+  const clubOpen = club?.open_time || "11:00";
+  const clubClose = club?.close_time || "01:00";
 
   // Active courts
   const activeCourts = courts.length > 0 ? courts : [
@@ -163,10 +213,23 @@ export default function DynamicClubBookingPage() {
 
   // Generate available slot groups: a time slot is available if AT LEAST one court is free
   const currentDayOfWeek = dateObj.getDay();
+  const isToday = selectedDateIso === todayIso;
+  const currentMinutes = getCurrentTimeMinutes();
   const availableSlotGroups: AvailableSlotGroup[] = [];
 
-  TIME_SLOTS.forEach((ts, tIdx) => {
+  ALL_90MIN_SLOTS.forEach((ts, tIdx) => {
     const slotStartTime = ts.split(" - ")[0]; // e.g. "18:30"
+    
+    // 1. Check if within club opening and closing hours
+    if (!isSlotWithinClubHours(ts, clubOpen, clubClose)) {
+      return;
+    }
+
+    // 2. Check if already passed for today
+    if (isToday && toMinutes(slotStartTime) <= currentMinutes) {
+      return;
+    }
+
     const isNight = slotStartTime >= lightStart;
     const slotPrice = isNight ? priceNight : priceDay;
 
@@ -345,8 +408,13 @@ export default function DynamicClubBookingPage() {
             <div className="flex items-center justify-center gap-6 text-white font-bold text-base select-none">
               <button
                 onClick={handlePrevDay}
-                className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition"
-                title="Día anterior"
+                disabled={selectedDateIso <= todayIso}
+                className={`p-1.5 rounded-lg transition ${
+                  selectedDateIso <= todayIso
+                    ? "opacity-30 cursor-not-allowed text-slate-600"
+                    : "hover:bg-slate-800 text-slate-400 hover:text-white"
+                }`}
+                title={selectedDateIso <= todayIso ? "No podés retroceder a días pasados" : "Día anterior"}
               >
                 <ChevronLeft className="h-5 w-5" />
               </button>

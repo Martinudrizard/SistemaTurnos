@@ -76,6 +76,58 @@ const MONTHS = [
 
 const DAYS = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
 
+export const ALL_90MIN_SLOTS = [
+  "08:00 - 09:30",
+  "09:30 - 11:00",
+  "11:00 - 12:30",
+  "12:30 - 14:00",
+  "14:00 - 15:30",
+  "15:30 - 17:00",
+  "17:00 - 18:30",
+  "18:30 - 20:00",
+  "20:00 - 21:30",
+  "21:30 - 23:00",
+  "23:00 - 00:30",
+  "00:30 - 02:00",
+];
+
+function toMinutes(t: string): number {
+  const [h, m] = t.split(":").map(Number);
+  return (h || 0) * 60 + (m || 0);
+}
+
+function isSlotWithinClubHours(
+  timeSlot: string,
+  openTime: string = "11:00",
+  closeTime: string = "01:00"
+): boolean {
+  const slotStartTime = timeSlot.split(" - ")[0]; // e.g. "14:00"
+  const slotStartMin = toMinutes(slotStartTime);
+
+  let openMin = toMinutes(openTime);
+  let closeMin = toMinutes(closeTime);
+
+  // If closing time is next day after midnight (e.g. 00:30, 01:00, 02:00)
+  if (closeMin <= openMin) {
+    closeMin += 24 * 60;
+  }
+
+  let adjustedSlotMin = slotStartMin;
+  if (adjustedSlotMin < openMin && adjustedSlotMin < (closeMin - 24 * 60)) {
+    adjustedSlotMin += 24 * 60;
+  }
+
+  return adjustedSlotMin >= openMin && adjustedSlotMin < closeMin;
+}
+
+function getTodayIsoString(): string {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, "0");
+  const d = String(now.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
 function formatDateReadable(isoStr: string) {
   try {
     const [y, m, d] = isoStr.split("-").map(Number);
@@ -231,18 +283,6 @@ export default function OwnerDashboard() {
     setTimeout(() => setCopiedLink(false), 2500);
   };
 
-  const TIME_SLOTS = [
-    "11:00 - 12:30",
-    "12:30 - 14:00",
-    "14:00 - 15:30",
-    "15:30 - 17:00",
-    "17:00 - 18:30",
-    "18:30 - 20:00",
-    "20:00 - 21:30",
-    "21:30 - 23:00",
-    "23:00 - 00:30",
-  ];
-
   const readableDate = formatDateReadable(currentDateIso);
 
   // Day of week calculation for current date
@@ -353,7 +393,11 @@ export default function OwnerDashboard() {
     return false;
   });
 
-  const totalSlotsCount = (courts.length || 1) * TIME_SLOTS.length;
+  const activeTimeSlots = ALL_90MIN_SLOTS.filter((ts) =>
+    isSlotWithinClubHours(ts, clubSettings.open_time || "11:00", clubSettings.close_time || "01:00")
+  );
+
+  const totalSlotsCount = (courts.length || 1) * (activeTimeSlots.length || 1);
   const occupiedSlotsCount = activeDayBookings.filter((b) => b.status !== "blocked").length;
   const occupationRate = Math.round((occupiedSlotsCount / totalSlotsCount) * 100) || 0;
   const totalIncomeSelectedDay = activeDayBookings.reduce((sum, b) => sum + (Number(b.deposit_paid) || 0), 0);
@@ -554,7 +598,9 @@ export default function OwnerDashboard() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-800/60 text-xs">
-                    {TIME_SLOTS.map((slot) => {
+                    {ALL_90MIN_SLOTS.filter((ts) =>
+                      isSlotWithinClubHours(ts, clubSettings.open_time || "11:00", clubSettings.close_time || "01:00")
+                    ).map((slot) => {
                       const isNightSlot = slot >= clubSettings.light_start_time;
                       const defaultSlotPrice = isNightSlot ? clubSettings.price_night : clubSettings.price_day;
 
@@ -746,25 +792,31 @@ export default function OwnerDashboard() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-1">
-                    <label className="text-xs text-slate-300">Horario de Apertura</label>
-                    <input
-                      type="text"
-                      placeholder="14:00"
-                      value={clubSettings.open_time}
+                    <label className="text-xs text-slate-300 font-medium">Horario de Apertura</label>
+                    <select
+                      value={clubSettings.open_time || "11:00"}
                       onChange={(e) => setClubSettings({ ...clubSettings, open_time: e.target.value })}
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white"
-                    />
+                      className="w-full bg-slate-950 border border-slate-800 focus:border-blue-500 rounded-xl px-3 py-2 text-xs text-white outline-none cursor-pointer"
+                    >
+                      {["07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00"].map((t) => (
+                        <option key={t} value={t} className="bg-slate-900 text-white">{t} hs</option>
+                      ))}
+                    </select>
+                    <p className="text-[10px] text-slate-500">Primer horario disponible para turnos</p>
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-xs text-slate-300">Horario de Cierre</label>
-                    <input
-                      type="text"
-                      placeholder="01:00"
-                      value={clubSettings.close_time}
+                    <label className="text-xs text-slate-300 font-medium">Horario de Cierre</label>
+                    <select
+                      value={clubSettings.close_time || "01:00"}
                       onChange={(e) => setClubSettings({ ...clubSettings, close_time: e.target.value })}
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white"
-                    />
+                      className="w-full bg-slate-950 border border-slate-800 focus:border-blue-500 rounded-xl px-3 py-2 text-xs text-white outline-none cursor-pointer"
+                    >
+                      {["21:30", "22:00", "23:00", "23:30", "00:00", "00:30", "01:00", "01:30", "02:00", "02:30", "03:00"].map((t) => (
+                        <option key={t} value={t} className="bg-slate-900 text-white">{t} hs</option>
+                      ))}
+                    </select>
+                    <p className="text-[10px] text-slate-500">Hora límite de finalización</p>
                   </div>
                 </div>
               </div>
