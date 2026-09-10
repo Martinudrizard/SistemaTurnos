@@ -172,22 +172,51 @@ router.post('/', async (req: Request, res: Response) => {
       [newClub.id]
     );
 
-    // Send welcome email with credentials to the owner asynchronously
+    // Send welcome email with credentials to the owner
+    let emailStatus: { success: boolean; error?: string } = { success: false };
     if (finalOwnerEmail) {
-      sendOwnerCredentialsEmail({
-        toEmail: finalOwnerEmail.trim(),
-        ownerName: finalOwnerName || finalName,
-        clubName: finalName,
-        password: password || 'padel123',
-        publicClubUrl: `https://sistema-turnos-gilt.vercel.app/clubs/${slug}`,
-      }).catch((err) => console.error('Error sending credentials email:', err));
+      try {
+        emailStatus = await sendOwnerCredentialsEmail({
+          toEmail: finalOwnerEmail.trim(),
+          ownerName: finalOwnerName || finalName,
+          clubName: finalName,
+          password: password || 'padel123',
+          publicClubUrl: `https://sistema-turnos-gilt.vercel.app/clubs/${slug}`,
+        });
+      } catch (err: any) {
+        console.error('Error sending credentials email:', err);
+        emailStatus = { success: false, error: err.message || String(err) };
+      }
     }
 
-    res.status(201).json(newClub);
+    res.status(201).json({
+      ...newClub,
+      emailSent: emailStatus.success,
+      emailError: emailStatus.error,
+    });
   } catch (e: any) {
     console.error('Error creating club:', e);
     res.status(500).json({ error: e.message || 'Failed to create club' });
   }
+});
+
+// POST /api/clubs/test-email - Test SMTP email delivery directly
+router.post('/test-email', async (req: Request, res: Response) => {
+  const { toEmail } = req.body;
+  const target = toEmail || process.env.SMTP_USER || 'marudri58@gmail.com';
+
+  const result = await sendOwnerCredentialsEmail({
+    toEmail: target,
+    ownerName: 'Admin de Prueba',
+    clubName: 'Club de Prueba PadelHub',
+    password: 'passwordTest123',
+    publicClubUrl: 'https://sistema-turnos-gilt.vercel.app/clubs/latoska-er',
+  });
+
+  res.json({
+    message: result.success ? 'Email de prueba enviado con éxito' : 'Error al enviar email de prueba',
+    result,
+  });
 });
 
 // DELETE /api/clubs/:id - Delete club and all associated records

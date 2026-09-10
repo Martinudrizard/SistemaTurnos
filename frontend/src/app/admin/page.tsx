@@ -187,7 +187,11 @@ export default function SuperAdminPage() {
         throw new Error(result.error || "Error al crear complejo");
       }
 
-      setMsg(`¡Complejo "${formData.name}" creado con éxito! Credenciales enviadas por mail.`);
+      if (result.emailSent) {
+        setMsg(`¡Complejo "${formData.name}" creado con éxito! Credenciales enviadas por correo a ${formData.ownerEmail}.`);
+      } else {
+        setMsg(`¡Complejo "${formData.name}" creado con éxito! (Aviso de correo: ${result.emailError || "No se pudo despachar el email, revisar configuración SMTP en Railway"}).`);
+      }
       setIsCreateModalOpen(false);
       setFormData({
         name: "",

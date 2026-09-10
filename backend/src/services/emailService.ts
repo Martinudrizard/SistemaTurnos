@@ -12,6 +12,12 @@ export interface EmailCredentialsOptions {
   publicClubUrl?: string;
 }
 
+export interface EmailResult {
+  success: boolean;
+  messageId?: string;
+  error?: string;
+}
+
 export async function sendOwnerCredentialsEmail({
   toEmail,
   ownerName,
@@ -19,7 +25,7 @@ export async function sendOwnerCredentialsEmail({
   password,
   loginUrl = 'https://sistema-turnos-gilt.vercel.app/login',
   publicClubUrl,
-}: EmailCredentialsOptions): Promise<boolean> {
+}: EmailCredentialsOptions): Promise<EmailResult> {
   const smtpHost = process.env.SMTP_HOST || 'smtp.gmail.com';
   const smtpPort = Number(process.env.SMTP_PORT) || 587;
   const smtpUser = process.env.SMTP_USER?.trim();
@@ -29,6 +35,12 @@ export async function sendOwnerCredentialsEmail({
 
   console.log(`[EmailService] Intento de envío a: ${toEmail} para el club "${clubName}"`);
   console.log(`[EmailService] Configuración SMTP: host=${smtpHost}, user=${smtpUser ? smtpUser.replace(/(.{3}).*@/, '$1***@') : 'NO_CONFIGURADO'}, pass_len=${smtpPass.length}`);
+
+  if (!smtpUser || !smtpPass) {
+    const msg = 'SMTP_USER o SMTP_PASS no configurados en las variables de entorno de Railway.';
+    console.warn(`[EmailService] ${msg}`);
+    return { success: false, error: msg };
+  }
 
   const htmlContent = `
 <!DOCTYPE html>
@@ -69,11 +81,6 @@ export async function sendOwnerCredentialsEmail({
 </html>
 `;
 
-  if (!smtpUser || !smtpPass) {
-    console.warn('[EmailService] SMTP_USER o SMTP_PASS no configurados en Railway. No se envió el correo real.');
-    return false;
-  }
-
   try {
     const isGmail = smtpHost.includes('gmail') || (smtpUser && smtpUser.endsWith('@gmail.com'));
     const transporterConfig: any = isGmail
@@ -108,9 +115,10 @@ export async function sendOwnerCredentialsEmail({
     });
 
     console.log(`[EmailService] ¡Correo enviado con éxito a ${toEmail}! MessageId:`, info.messageId);
-    return true;
+    return { success: true, messageId: info.messageId };
   } catch (error: any) {
-    console.error('[EmailService] Error al enviar correo vía SMTP:', error.message || error);
-    return false;
+    const errText = error.message || String(error);
+    console.error('[EmailService] Error al enviar correo vía SMTP:', errText);
+    return { success: false, error: errText };
   }
 }
