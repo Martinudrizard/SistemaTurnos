@@ -51,10 +51,17 @@ router.get('/debug/schema', async (_req: Request, res: Response) => {
 // GET /api/clubs/:idOrSlug - Get single club
 router.get('/:idOrSlug', async (req: Request, res: Response) => {
   const { idOrSlug } = req.params;
+  const cleanParam = idOrSlug.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
   try {
     const result = await pgPool.query(
-      'SELECT * FROM clubs WHERE id::text = $1 OR slug = $1',
-      [idOrSlug]
+      `SELECT * FROM clubs 
+       WHERE id::text = $1 
+          OR slug = $1 
+          OR slug = $2
+          OR LOWER(REPLACE(slug, '-', '')) = LOWER(REPLACE($1, '-', ''))
+          OR LOWER(REPLACE(slug, '-', '')) = LOWER(REPLACE($2, '-', ''))
+       LIMIT 1`,
+      [idOrSlug, cleanParam]
     );
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Club no encontrado' });
@@ -156,7 +163,12 @@ router.post('/', async (req: Request, res: Response) => {
     return res.status(400).json({ error: 'Nombre del club es requerido' });
   }
 
-  let baseSlug = finalName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') || 'club';
+  let baseSlug = finalName
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '') || 'club';
   let slug = baseSlug;
 
   try {

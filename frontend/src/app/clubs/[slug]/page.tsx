@@ -149,22 +149,36 @@ export default function DynamicClubBookingPage() {
 
   const loadClubData = async () => {
     try {
-      const clubsRes = await fetch("https://padel-saas-backend-production.up.railway.app/api/clubs");
-      if (clubsRes.ok) {
-        const clubs: Club[] = await clubsRes.json();
-        const matchedClub = clubs.find((c) => c.slug === slugParam) || clubs[0];
-        if (matchedClub) {
-          setClub(matchedClub);
-          const courtsRes = await fetch(`https://padel-saas-backend-production.up.railway.app/api/courts/${matchedClub.id}`);
-          if (courtsRes.ok) {
-            const courtsData = await courtsRes.json();
-            setCourts(courtsData);
-          }
-          const resRes = await fetch(`https://padel-saas-backend-production.up.railway.app/api/reservations?clubId=${matchedClub.id}`);
-          if (resRes.ok) {
-            const resData = await resRes.json();
-            setReservations(resData);
-          }
+      let targetClub: Club | null = null;
+      const directRes = await fetch(`https://padel-saas-backend-production.up.railway.app/api/clubs/${slugParam}`);
+      if (directRes.ok) {
+        targetClub = await directRes.json();
+      }
+
+      if (!targetClub) {
+        const clubsRes = await fetch("https://padel-saas-backend-production.up.railway.app/api/clubs");
+        if (clubsRes.ok) {
+          const clubs: Club[] = await clubsRes.json();
+          const cleanParam = slugParam.toLowerCase().replace(/[^a-z0-9]/g, '');
+          targetClub =
+            clubs.find((c) => c.slug === slugParam) ||
+            clubs.find((c) => c.slug.replace(/[^a-z0-9]/g, '') === cleanParam) ||
+            clubs.find((c) => c.name.toLowerCase().replace(/[^a-z0-9]/g, '') === cleanParam) ||
+            clubs[0];
+        }
+      }
+
+      if (targetClub) {
+        setClub(targetClub);
+        const courtsRes = await fetch(`https://padel-saas-backend-production.up.railway.app/api/courts/${targetClub.id}`);
+        if (courtsRes.ok) {
+          const courtsData = await courtsRes.json();
+          setCourts(courtsData);
+        }
+        const resRes = await fetch(`https://padel-saas-backend-production.up.railway.app/api/reservations?clubId=${targetClub.id}`);
+        if (resRes.ok) {
+          const resData = await resRes.json();
+          setReservations(resData);
         }
       }
     } catch (err) {
