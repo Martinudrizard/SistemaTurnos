@@ -16,6 +16,28 @@ router.get('/', async (_req: Request, res: Response) => {
   }
 });
 
+// GET /api/clubs/debug/schema
+router.get('/debug/schema', async (_req: Request, res: Response) => {
+  try {
+    const clubsCols = await pgPool.query(
+      "SELECT column_name, data_type FROM information_schema.columns WHERE table_name = 'clubs'"
+    );
+    const usersCols = await pgPool.query(
+      "SELECT column_name, data_type FROM information_schema.columns WHERE table_name = 'users'"
+    );
+    const courtsCols = await pgPool.query(
+      "SELECT column_name, data_type FROM information_schema.columns WHERE table_name = 'courts'"
+    );
+    res.json({
+      clubs: clubsCols.rows,
+      users: usersCols.rows,
+      courts: courtsCols.rows,
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // GET /api/clubs/:idOrSlug - Get single club
 router.get('/:idOrSlug', async (req: Request, res: Response) => {
   const { idOrSlug } = req.params;
