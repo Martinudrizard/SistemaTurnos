@@ -49,17 +49,14 @@ interface Reservation {
   status: string;
 }
 
-interface Slot {
+interface AvailableSlotGroup {
   id: string;
-  courtId: string;
-  courtName: string;
-  surface: string;
-  indoor: boolean;
   timeSlot: string;
+  startTime: string;
+  isNight: boolean;
   price: number;
   deposit: number;
-  isNight: boolean;
-  isOccupied: boolean;
+  availableCourts: Court[];
 }
 
 const MONTHS = [
@@ -89,7 +86,8 @@ export default function DynamicClubBookingPage() {
   const [courts, setCourts] = useState<Court[]>([]);
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [selectedDateIso, setSelectedDateIso] = useState<string>("2026-09-10");
-  const [selectedSlot, setSelectedSlot] = useState<Slot | null>(null);
+  const [selectedSlotGroup, setSelectedSlotGroup] = useState<AvailableSlotGroup | null>(null);
+  const [selectedCourtId, setSelectedCourtId] = useState<string>("");
   const [loading, setLoading] = useState(true);
 
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
@@ -163,16 +161,17 @@ export default function DynamicClubBookingPage() {
     { id: "c2", club_id: club?.id || "default", name: "Cancha 2 (Sintético)", surface: "Césped Sintético Pro", indoor: false },
   ];
 
-  // Generate slots for active courts on selected date
+  // Generate available slot groups: a time slot is available if AT LEAST one court is free
   const currentDayOfWeek = dateObj.getDay();
-  const generatedSlots: Slot[] = [];
-  activeCourts.forEach((court, cIdx) => {
-    TIME_SLOTS.forEach((ts, tIdx) => {
-      const slotStartTime = ts.split(" - ")[0]; // e.g. "18:30"
-      const isNight = slotStartTime >= lightStart;
-      const slotPrice = isNight ? priceNight : priceDay;
+  const availableSlotGroups: AvailableSlotGroup[] = [];
 
-      // Check if slot is occupied on this date or has a fixed booking for this day of week
+  TIME_SLOTS.forEach((ts, tIdx) => {
+    const slotStartTime = ts.split(" - ")[0]; // e.g. "18:30"
+    const isNight = slotStartTime >= lightStart;
+    const slotPrice = isNight ? priceNight : priceDay;
+
+    // Filter courts that are not occupied for this date & time slot
+    const freeCourts = activeCourts.filter((court) => {
       const isOccupied = reservations.some((r) => {
         if (r.court_id !== court.id || r.time_slot !== ts || r.status === "canceled") {
           return false;
@@ -182,48 +181,55 @@ export default function DynamicClubBookingPage() {
         }
         return r.date_str === selectedDateIso;
       });
+      return !isOccupied;
+    });
 
-      generatedSlots.push({
-        id: `slot-${cIdx}-${tIdx}`,
-        courtId: court.id,
-        courtName: court.name,
-        surface: court.surface || "Cristal Panorámico",
-        indoor: court.indoor ?? true,
+    if (freeCourts.length > 0) {
+      availableSlotGroups.push({
+        id: `slot-group-${tIdx}`,
         timeSlot: ts,
+        startTime: slotStartTime,
         price: slotPrice,
         deposit: depositAmount,
         isNight,
-        isOccupied,
+        availableCourts: freeCourts,
       });
-    });
+    }
   });
 
-  const availableSlots = generatedSlots.filter((s) => !s.isOccupied);
-
-  const handleSelectSlot = (slot: Slot) => {
-    setSelectedSlot(slot);
+  const handleSelectSlot = (group: AvailableSlotGroup) => {
+    setSelectedSlotGroup(group);
+    setSelectedCourtId(group.availableCourts[0]?.id || "");
     setCheckoutStep("form");
     setIsCheckoutOpen(true);
   };
 
   const handleProcessPayment = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!selectedSlotGroup) return;
+
+    const courtToBook =
+      selectedSlotGroup.availableCourts.find((c) => c.id === selectedCourtId) ||
+      selectedSlotGroup.availableCourts[0];
+    if (!courtToBook) return;
+
     setCheckoutStep("mercadopago");
 
     try {
+      const formattedPhone = playerForm.phone.startsWith("+54") ? playerForm.phone : `+54 9 ${playerForm.phone}`;
       const res = await fetch("https://padel-saas-backend-production.up.railway.app/api/reservations", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           club_id: club?.id,
-          court_id: selectedSlot?.courtId,
+          court_id: courtToBook.id,
           player_name: `${playerForm.firstName} ${playerForm.lastName}`.trim(),
-          player_phone: playerForm.phone,
-          player_email: playerForm.email,
+          player_phone: formattedPhone,
+          player_email: playerForm.email || "reserva@padel.app",
           date_str: selectedDateIso,
-          time_slot: selectedSlot?.timeSlot,
-          price: selectedSlot?.price || priceDay,
-          deposit: selectedSlot?.deposit || depositAmount,
+          time_slot: selectedSlotGroup.timeSlot,
+          price: selectedSlotGroup.price,
+          deposit: selectedSlotGroup.deposit,
           booking_type: "casual",
         }),
       });
@@ -238,14 +244,14 @@ export default function DynamicClubBookingPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           club_id: club?.id,
-          court_id: selectedSlot?.courtId,
+          court_id: courtToBook.id,
           player_name: `${playerForm.firstName} ${playerForm.lastName}`.trim(),
-          player_phone: playerForm.phone,
-          player_email: playerForm.email,
+          player_phone: formattedPhone,
+          player_email: playerForm.email || "reserva@padel.app",
           date_str: selectedDateIso,
-          time_slot: selectedSlot?.timeSlot,
-          price: selectedSlot?.price || priceDay,
-          amount: selectedSlot?.deposit || depositAmount,
+          time_slot: selectedSlotGroup.timeSlot,
+          price: selectedSlotGroup.price,
+          amount: selectedSlotGroup.deposit,
         }),
       });
 
@@ -330,7 +336,7 @@ export default function DynamicClubBookingPage() {
               Reserva de turnos
             </h2>
             <span className="text-xs text-slate-400">
-              {availableSlots.length} {availableSlots.length === 1 ? "horario libre" : "horarios libres"}
+              {availableSlotGroups.length} {availableSlotGroups.length === 1 ? "horario libre" : "horarios libres"}
             </span>
           </div>
 
@@ -364,38 +370,35 @@ export default function DynamicClubBookingPage() {
             </div>
           </div>
 
-          {/* Simple Slot List */}
+          {/* Dynamic Available Slot Groups */}
           <div className="space-y-2.5 pt-1">
-            {availableSlots.length > 0 ? (
-              availableSlots.map((slot) => {
-                const startTime = slot.timeSlot.split(" - ")[0]; // e.g. "14:00"
-                return (
-                  <button
-                    key={slot.id}
-                    onClick={() => handleSelectSlot(slot)}
-                    className="w-full flex items-center justify-between px-4 py-3.5 rounded-2xl bg-[#0e141a] hover:bg-slate-800/60 border border-slate-800/60 hover:border-emerald-500/40 transition group text-left shadow-sm"
-                  >
-                    <div className="flex items-center gap-3">
-                      <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400/80 group-hover:scale-125 transition" />
-                      <div className="text-xs sm:text-sm font-semibold text-white">
-                        <span className="font-bold text-emerald-300">{startTime} hs</span>
-                        <span className="text-slate-400 font-normal"> | Turno disponible para Pádel</span>
-                        {courts.length > 1 && (
-                          <span className="text-[11px] text-slate-500 font-normal ml-1">
-                            ({slot.courtName})
-                          </span>
-                        )}
-                      </div>
+            {availableSlotGroups.length > 0 ? (
+              availableSlotGroups.map((group) => (
+                <button
+                  key={group.id}
+                  onClick={() => handleSelectSlot(group)}
+                  className="w-full flex items-center justify-between px-4 py-3.5 rounded-2xl bg-[#0e141a] hover:bg-slate-800/60 border border-slate-800/60 hover:border-emerald-500/40 transition group text-left shadow-sm"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400/80 group-hover:scale-125 transition" />
+                    <div className="text-xs sm:text-sm font-semibold text-white flex items-center flex-wrap gap-1.5">
+                      <span className="font-bold text-emerald-300">{group.startTime} hs</span>
+                      <span className="text-slate-400 font-normal">| Turno disponible</span>
+                      {activeCourts.length > 1 && (
+                        <span className="text-[11px] text-emerald-400/90 font-medium bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                          {group.availableCourts.length} {group.availableCourts.length === 1 ? "cancha libre" : "canchas libres"}
+                        </span>
+                      )}
                     </div>
+                  </div>
 
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-semibold text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-xl border border-emerald-500/20 group-hover:bg-emerald-500 group-hover:text-slate-950 transition">
-                        Reservar (Seña ${slot.deposit.toLocaleString()})
-                      </span>
-                    </div>
-                  </button>
-                );
-              })
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-semibold text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-xl border border-emerald-500/20 group-hover:bg-emerald-500 group-hover:text-slate-950 transition">
+                      Reservar (Seña ${group.deposit.toLocaleString()})
+                    </span>
+                  </div>
+                </button>
+              ))
             ) : (
               <div className="py-12 text-center text-slate-500 text-xs space-y-1">
                 <Lock className="h-6 w-6 text-slate-600 mx-auto mb-2" />
@@ -444,114 +447,157 @@ export default function DynamicClubBookingPage() {
               <div className="h-4 w-4 flex items-center justify-center text-slate-400 text-xs">
                 🎾
               </div>
-              <span className="text-slate-200 font-medium">Pádel ({courts.length || 2} Pistas)</span>
+              <span className="text-slate-200 font-medium">Pádel ({activeCourts.length} Pistas)</span>
             </div>
           </div>
         </div>
       </main>
 
-      {/* Clean Checkout Modal */}
-      {isCheckoutOpen && selectedSlot && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[#131b22] border border-slate-800 rounded-3xl w-full max-w-lg p-6 sm:p-8 space-y-5 shadow-2xl">
+      {/* Clean Reservation Modal */}
+      {isCheckoutOpen && selectedSlotGroup && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-[#131b22] border border-slate-800 rounded-3xl w-full max-w-lg p-6 sm:p-8 space-y-5 shadow-2xl my-8">
             {checkoutStep === "form" && (
               <>
                 <div className="flex justify-between items-center border-b border-slate-800 pb-3">
                   <div>
-                    <h3 className="font-extrabold text-white text-base">Reservar Turno</h3>
+                    <h3 className="font-extrabold text-white text-base">Nueva reserva</h3>
                     <p className="text-xs text-slate-400">{clubDisplayName}</p>
                   </div>
                   <button
                     onClick={() => setIsCheckoutOpen(false)}
-                    className="p-1.5 rounded-lg text-slate-400 hover:text-white"
+                    className="p-1.5 rounded-lg text-slate-400 hover:text-white transition"
                   >
                     ✕
                   </button>
                 </div>
 
-                <div className="bg-[#0e141a] border border-slate-800 rounded-2xl p-4 text-xs space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-slate-400">Día y Horario:</span>
-                    <span className="font-bold text-white capitalize">{shortDateDisplay} — {selectedSlot.timeSlot}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-400">Pista:</span>
-                    <span className="text-white">{selectedSlot.courtName}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-400">Total Turno:</span>
-                    <span className="text-slate-200">${selectedSlot.price.toLocaleString()}</span>
-                  </div>
-                  <div className="flex justify-between border-t border-slate-800/80 pt-2">
-                    <span className="text-slate-400 font-medium">Seña MercadoPago:</span>
-                    <span className="font-bold text-emerald-400 text-sm">${selectedSlot.deposit.toLocaleString()}</span>
-                  </div>
-                </div>
-
-                <form onSubmit={handleProcessPayment} className="space-y-3">
-                  <div className="grid grid-cols-2 gap-2">
+                <form onSubmit={handleProcessPayment} className="space-y-4">
+                  {/* Nombre y Apellido */}
+                  <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1">
-                      <label className="text-xs text-slate-300">Nombre</label>
+                      <label className="text-xs text-slate-300 font-medium">Nombre</label>
                       <input
                         required
                         type="text"
-                        placeholder="Martín"
+                        placeholder="Nombre"
                         value={playerForm.firstName}
                         onChange={(e) => setPlayerForm({ ...playerForm, firstName: e.target.value })}
-                        className="w-full bg-[#0e141a] border border-slate-800 rounded-xl px-3 py-2 text-xs text-white"
+                        className="w-full bg-[#0e141a] border border-slate-800 focus:border-emerald-500/50 rounded-xl px-3 py-2.5 text-xs text-white placeholder-slate-600 outline-none"
                       />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-xs text-slate-300">Apellido</label>
+                      <label className="text-xs text-slate-300 font-medium">Apellido</label>
                       <input
                         required
                         type="text"
-                        placeholder="Udrizard"
+                        placeholder="Apellido"
                         value={playerForm.lastName}
                         onChange={(e) => setPlayerForm({ ...playerForm, lastName: e.target.value })}
-                        className="w-full bg-[#0e141a] border border-slate-800 rounded-xl px-3 py-2 text-xs text-white"
+                        className="w-full bg-[#0e141a] border border-slate-800 focus:border-emerald-500/50 rounded-xl px-3 py-2.5 text-xs text-white placeholder-slate-600 outline-none"
                       />
                     </div>
                   </div>
 
+                  {/* Teléfono / WhatsApp */}
                   <div className="space-y-1">
-                    <label className="text-xs text-slate-300">WhatsApp</label>
-                    <input
-                      required
-                      type="text"
-                      placeholder="+54 9 343 ..."
-                      value={playerForm.phone}
-                      onChange={(e) => setPlayerForm({ ...playerForm, phone: e.target.value })}
-                      className="w-full bg-[#0e141a] border border-slate-800 rounded-xl px-3 py-2 text-xs text-white"
-                    />
+                    <label className="text-xs text-slate-300 font-medium">Teléfono (WhatsApp)</label>
+                    <div className="grid grid-cols-3 gap-2">
+                      <div className="bg-[#0e141a] border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-300 flex items-center justify-center font-medium">
+                        AR +54
+                      </div>
+                      <input
+                        required
+                        type="tel"
+                        placeholder="343 510 0200"
+                        value={playerForm.phone}
+                        onChange={(e) => setPlayerForm({ ...playerForm, phone: e.target.value })}
+                        className="col-span-2 w-full bg-[#0e141a] border border-slate-800 focus:border-emerald-500/50 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-600 outline-none"
+                      />
+                    </div>
+                    <p className="text-[10px] text-slate-500 mt-0.5">
+                      Se debe eliminar el prefijo 0 en el código de área y el prefijo 15 en el teléfono. Ej: 358 510 0200
+                    </p>
                   </div>
 
+                  {/* Email (opcional / de contacto) */}
                   <div className="space-y-1">
-                    <label className="text-xs text-slate-300">Email</label>
+                    <label className="text-xs text-slate-300 font-medium">Email (opcional)</label>
                     <input
-                      required
                       type="email"
-                      placeholder="martin@ejemplo.com"
+                      placeholder="usuario@ejemplo.com"
                       value={playerForm.email}
                       onChange={(e) => setPlayerForm({ ...playerForm, email: e.target.value })}
-                      className="w-full bg-[#0e141a] border border-slate-800 rounded-xl px-3 py-2 text-xs text-white"
+                      className="w-full bg-[#0e141a] border border-slate-800 focus:border-emerald-500/50 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-600 outline-none"
                     />
                   </div>
 
-                  <div className="pt-3 border-t border-slate-800 flex justify-end gap-2">
+                  {/* Duración del turno */}
+                  <div className="space-y-1">
+                    <label className="text-xs text-slate-300 font-medium">Duración de turno</label>
+                    <div className="w-full bg-[#0e141a] border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-slate-200 font-medium flex items-center justify-between">
+                      <span>90 Minutos</span>
+                      <span className="text-slate-500 text-[11px]">Estándar</span>
+                    </div>
+                  </div>
+
+                  {/* Selector de Cancha disponible */}
+                  <div className="space-y-1">
+                    <label className="text-xs text-slate-300 font-medium">Cancha</label>
+                    <select
+                      value={selectedCourtId}
+                      onChange={(e) => setSelectedCourtId(e.target.value)}
+                      className="w-full bg-[#0e141a] border border-slate-800 focus:border-emerald-500/50 rounded-xl px-3 py-2.5 text-xs text-white outline-none cursor-pointer"
+                    >
+                      {selectedSlotGroup.availableCourts.map((court) => (
+                        <option key={court.id} value={court.id} className="bg-[#131b22] text-white">
+                          {court.name} {court.surface ? `(${court.surface})` : ""}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Resumen del Turno */}
+                  <div className="bg-[#0e141a] border border-slate-800/80 rounded-2xl p-4 text-xs space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-slate-400">Inicia:</span>
+                      <span className="font-semibold text-white capitalize">
+                        {shortDateDisplay} {selectedSlotGroup.timeSlot.split(" - ")[0]} hs
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-slate-400">Termina:</span>
+                      <span className="text-slate-300 font-medium">
+                        {selectedSlotGroup.timeSlot.split(" - ")[1]} hs
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-slate-400">Precio Total:</span>
+                      <span className="text-slate-200 font-bold">${selectedSlotGroup.price.toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between items-center border-t border-slate-800/80 pt-2">
+                      <span className="text-slate-300 font-medium">Seña MercadoPago:</span>
+                      <span className="font-extrabold text-emerald-400 text-sm">
+                        ${selectedSlotGroup.deposit.toLocaleString()}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Botones */}
+                  <div className="pt-2 flex justify-end gap-3">
                     <button
                       type="button"
                       onClick={() => setIsCheckoutOpen(false)}
-                      className="px-4 py-2 rounded-xl text-xs text-slate-400 hover:text-white"
+                      className="px-4 py-2.5 rounded-xl text-xs text-slate-400 hover:text-white transition"
                     >
                       Cancelar
                     </button>
                     <button
                       type="submit"
-                      className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold px-5 py-2.5 rounded-xl text-xs transition shadow-lg shadow-emerald-500/20"
+                      className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold px-6 py-2.5 rounded-xl text-xs transition shadow-lg shadow-emerald-500/20"
                     >
                       <CreditCard className="h-4 w-4" />
-                      <span>Pagar Seña (${selectedSlot.deposit.toLocaleString()})</span>
+                      <span>Reservar (Pagar Seña ${selectedSlotGroup.deposit.toLocaleString()})</span>
                     </button>
                   </div>
                 </form>
