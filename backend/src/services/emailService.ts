@@ -75,68 +75,7 @@ export async function sendOwnerCredentialsEmail({
 </html>
 `;
 
-  // 1. Si están configurados SMTP_USER y SMTP_PASS (Gmail), intentar enviar primero por Gmail
-  if (smtpUser && smtpPass) {
-    try {
-      const transporter = nodemailer.createTransport({
-        service: 'gmail',
-        auth: {
-          user: smtpUser,
-          pass: smtpPass,
-        },
-        tls: {
-          rejectUnauthorized: false,
-        },
-      });
-
-      const info = await transporter.sendMail({
-        from: `"PadelHub" <${fromEmail}>`,
-        to: toEmail,
-        subject: `🎾 Tus credenciales de acceso a PadelHub - ${clubName}`,
-        html: htmlContent,
-        text: `Hola ${ownerName},\n\nTu complejo ${clubName} ha sido dado de alta.\n\nUsuario: ${toEmail}\nPassword: ${password}\nIngresá aquí: ${loginUrl}\n`,
-      });
-
-      console.log(`[EmailService] ¡Correo enviado vía Gmail a ${toEmail}! MessageId:`, info.messageId);
-      return { success: true, messageId: info.messageId };
-    } catch (error: any) {
-      console.warn('[EmailService] Advertencia al enviar por Gmail, intentando fallback Resend si existe:', error.message);
-    }
-  }
-
-  // 2. Fallback a Resend HTTP API
-  const resendApiKey = process.env.RESEND_API_KEY?.trim();
-  if (resendApiKey) {
-    try {
-      const res = await fetch('https://api.resend.com/emails', {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${resendApiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          from: process.env.RESEND_FROM?.trim() || 'PadelHub <onboarding@resend.dev>',
-          to: [toEmail],
-          subject: `🎾 Tus credenciales de acceso a PadelHub - ${clubName}`,
-          html: htmlContent,
-        }),
-      });
-
-      const data: any = await res.json();
-      if (res.ok) {
-        console.log(`[EmailService] ¡Correo enviado vía Resend API a ${toEmail}! Id:`, data.id);
-        return { success: true, messageId: data.id };
-      } else {
-        console.error('[EmailService] Resend API Error:', data);
-        return { success: false, error: data.message || 'Error en Resend API' };
-      }
-    } catch (err: any) {
-      console.error('[EmailService] Error al conectar con Resend HTTP API:', err);
-      return { success: false, error: err.message };
-    }
-  }
-
-  // 3. Fallback a Brevo (Sendinblue) HTTP API (Envía a cualquier destinatario vía HTTPS puerto 443)
+  // 1. Si existe BREVO_API_KEY, enviar vía Brevo HTTPS REST API (puerto 443, sin restricción de dominio a cualquier destinatario)
   const brevoApiKey = process.env.BREVO_API_KEY?.trim() || process.env.SIB_API_KEY?.trim();
   if (brevoApiKey) {
     try {
@@ -161,15 +100,72 @@ export async function sendOwnerCredentialsEmail({
         return { success: true, messageId: data.messageId };
       } else {
         console.error('[EmailService] Brevo API Error:', data);
-        return { success: false, error: data.message || 'Error en Brevo API' };
       }
     } catch (err: any) {
       console.error('[EmailService] Error al conectar con Brevo HTTP API:', err);
-      return { success: false, error: err.message };
     }
   }
 
-  const msg = 'No se pudo enviar el correo: verifique las credenciales de Gmail, Resend o Brevo.';
+  // 2. Si existe RESEND_API_KEY, intentar Resend HTTP API
+  const resendApiKey = process.env.RESEND_API_KEY?.trim();
+  if (resendApiKey) {
+    try {
+      const res = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${resendApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          from: process.env.RESEND_FROM?.trim() || 'PadelHub <onboarding@resend.dev>',
+          to: [toEmail],
+          subject: `🎾 Tus credenciales de acceso a PadelHub - ${clubName}`,
+          html: htmlContent,
+        }),
+      });
+
+      const data: any = await res.json();
+      if (res.ok) {
+        console.log(`[EmailService] ¡Correo enviado vía Resend API a ${toEmail}! Id:`, data.id);
+        return { success: true, messageId: data.id };
+      } else {
+        console.error('[EmailService] Resend API Error:', data);
+      }
+    } catch (err: any) {
+      console.error('[EmailService] Error al conectar con Resend HTTP API:', err);
+    }
+  }
+
+  // 3. Fallback SMTP (Gmail)
+  if (smtpUser && smtpPass) {
+    try {
+      const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+          user: smtpUser,
+          pass: smtpPass,
+        },
+        tls: {
+          rejectUnauthorized: false,
+        },
+      });
+
+      const info = await transporter.sendMail({
+        from: `"PadelHub" <${fromEmail}>`,
+        to: toEmail,
+        subject: `🎾 Tus credenciales de acceso a PadelHub - ${clubName}`,
+        html: htmlContent,
+        text: `Hola ${ownerName},\n\nTu complejo ${clubName} ha sido dado de alta.\n\nUsuario: ${toEmail}\nPassword: ${password}\nIngresá aquí: ${loginUrl}\n`,
+      });
+
+      console.log(`[EmailService] ¡Correo enviado vía Gmail a ${toEmail}! MessageId:`, info.messageId);
+      return { success: true, messageId: info.messageId };
+    } catch (error: any) {
+      console.warn('[EmailService] Error SMTP Gmail:', error.message);
+    }
+  }
+
+  const msg = 'No se pudo enviar el correo: verifique las credenciales de Brevo, Resend o Gmail.';
   console.warn(`[EmailService] ${msg}`);
   return { success: false, error: msg };
 }
