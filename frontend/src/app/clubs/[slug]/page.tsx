@@ -352,9 +352,7 @@ export default function DynamicClubBookingPage() {
   };
 
   const clubPhoneClean = formatClubWhatsApp(club?.phone);
-  const clubWhatsAppWelcome = club?.custom_whatsapp_msg
-    ? encodeURIComponent(club.custom_whatsapp_msg)
-    : encodeURIComponent(`¡Hola! Quería consultar por un turno en ${clubDisplayName}`);
+  const clubWhatsAppWelcome = encodeURIComponent("Hola, quiero realizar una consulta!");
 
   if (club && club.status === "inactive") {
     return (
@@ -368,7 +366,7 @@ export default function DynamicClubBookingPage() {
         </p>
         {club.phone && (
           <a
-            href={`https://wa.me/${clubPhoneClean}`}
+            href={`https://wa.me/${clubPhoneClean}?text=${clubWhatsAppWelcome}`}
             target="_blank"
             rel="noreferrer"
             className="inline-flex items-center gap-2 bg-[#00D084] hover:bg-[#4ADE80] text-[#06100E] font-bold px-5 py-2.5 rounded-xl text-xs transition"
