@@ -194,28 +194,20 @@ router.post('/', async (req: Request, res: Response) => {
       [newClub.id]
     );
 
-    // Send welcome email with credentials to the owner
-    let emailStatus: { success: boolean; error?: string } = { success: false };
+    // Send welcome email with credentials asynchronously in background
     if (finalOwnerEmail) {
-      try {
-        emailStatus = await sendOwnerCredentialsEmail({
-          toEmail: finalOwnerEmail.trim(),
-          ownerName: finalOwnerName || finalName,
-          clubName: finalName,
-          password: password || 'padel123',
-          publicClubUrl: `https://sistema-turnos-gilt.vercel.app/clubs/${slug}`,
-        });
-      } catch (err: any) {
-        console.error('Error sending credentials email:', err);
-        emailStatus = { success: false, error: err.message || String(err) };
-      }
+      sendOwnerCredentialsEmail({
+        toEmail: finalOwnerEmail.trim(),
+        ownerName: finalOwnerName || finalName,
+        clubName: finalName,
+        password: password || 'padel123',
+        publicClubUrl: `https://sistema-turnos-gilt.vercel.app/clubs/${slug}`,
+      }).catch((err) => {
+        console.error('[EmailService] Error en background enviando credenciales:', err);
+      });
     }
 
-    res.status(201).json({
-      ...newClub,
-      emailSent: emailStatus.success,
-      emailError: emailStatus.error,
-    });
+    res.status(201).json(newClub);
   } catch (e: any) {
     const errorDetails = e.detail ? `${e.message} - ${e.detail}` : (e.message || String(e));
     console.error('Error creating club:', errorDetails, e);
