@@ -493,41 +493,6 @@ export default function OwnerDashboard() {
           </div>
         </div>
 
-        <section className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="bg-[#0C1517] border border-[#16272a] p-5 rounded-2xl">
-            <p className="text-xs font-medium text-[#8A9B95]">Ocupación ({currentDayName})</p>
-            <h3 className="text-2xl font-bold mt-1 text-[#F1F5F3]">{occupationRate}%</h3>
-            <p className="text-xs text-[#00D084] mt-1 flex items-center gap-1">
-              <Flame className="h-3.5 w-3.5" /> {occupiedSlotsCount} de {totalSlotsCount} turnos
-            </p>
-          </div>
-
-          <div className="bg-[#0C1517] border border-[#16272a] p-5 rounded-2xl">
-            <p className="text-xs font-medium text-[#8A9B95]">Señas Cobradas (Día)</p>
-            <h3 className="text-2xl font-bold mt-1 text-[#00D084]">
-              ${totalIncomeSelectedDay.toLocaleString()}
-            </h3>
-            <p className="text-xs text-[#8A9B95] mt-1">Confirmadas en el sistema</p>
-          </div>
-
-          <div className="bg-[#0C1517] border border-[#16272a] p-5 rounded-2xl">
-            <p className="text-xs font-medium text-[#8A9B95]">Tarifa Diurna / Nocturna</p>
-            <h3 className="text-xl font-bold mt-1 text-[#F1F5F3]">
-              ${clubSettings.price_day.toLocaleString()} / ${clubSettings.price_night.toLocaleString()}
-            </h3>
-            <p className="text-xs text-[#8A9B95] mt-1">Luz a partir de {clubSettings.light_start_time} hs</p>
-          </div>
-
-          <div className="bg-[#0C1517] border border-[#16272a] p-5 rounded-2xl">
-            <p className="text-xs font-medium text-[#8A9B95]">WhatsApp & Bot IA</p>
-            <div className="flex items-center gap-2 mt-1">
-              <span className="h-2 w-2 rounded-full bg-[#00D084] animate-pulse"></span>
-              <span className="text-sm font-bold text-[#F1F5F3]">{clubSettings.phone || "Conectado"}</span>
-            </div>
-            <p className="text-xs text-[#8A9B95] mt-1">Respuestas y reservas automáticas</p>
-          </div>
-        </section>
-
         {activeTab === "grid" && (
           <div className="space-y-4">
             {/* Navegador del Calendario */}
