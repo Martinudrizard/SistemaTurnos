@@ -209,9 +209,10 @@ router.post('/', async (req: Request, res: Response) => {
 
     res.status(201).json(newClub);
   } catch (e: any) {
-    const errorDetails = e.detail ? `${e.message} - ${e.detail}` : (e.message || String(e));
+    const innerErrors = e.errors ? (e.errors as any[]).map((err) => err.message || err.code || String(err)).join(', ') : '';
+    const errorDetails = innerErrors || (e.detail ? `${e.message} - ${e.detail}` : (e.message || String(e)));
     console.error('Error creating club:', errorDetails, e);
-    res.status(500).json({ error: errorDetails });
+    res.status(500).json({ error: errorDetails, details: innerErrors });
   }
 });
 
