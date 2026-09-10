@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Calendar as CalendarIcon,
   Clock,
@@ -16,6 +16,9 @@ import {
   Lock,
   Repeat,
   Zap,
+  ChevronLeft,
+  ChevronRight,
+  CalendarDays,
 } from "lucide-react";
 
 interface Court {
@@ -54,10 +57,33 @@ interface ClubSettings {
   deposit_amount: number;
 }
 
+const MONTHS = [
+  "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+  "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+];
+
+const DAYS = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+
+function formatDateReadable(isoStr: string) {
+  try {
+    const [y, m, d] = isoStr.split("-").map(Number);
+    const date = new Date(y, m - 1, d);
+    const dayName = DAYS[date.getDay()];
+    const monthName = MONTHS[m - 1];
+    return `${dayName}, ${d} de ${monthName} de ${y}`;
+  } catch (e) {
+    return isoStr;
+  }
+}
+
 export default function OwnerDashboard() {
   const [user, setUser] = useState<any>(null);
   const [activeTab, setActiveTab] = useState<"grid" | "courts" | "pricing">("grid");
-  const [selectedDate, setSelectedDate] = useState("Hoy, 9 de Septiembre");
+  
+  // Default date (September 9, 2026 or current)
+  const [currentDateIso, setCurrentDateIso] = useState<string>("2026-09-09");
+  const dateInputRef = useRef<HTMLInputElement>(null);
+
   const [courts, setCourts] = useState<Court[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [clubSettings, setClubSettings] = useState<ClubSettings>({
@@ -148,6 +174,26 @@ export default function OwnerDashboard() {
     }
   };
 
+  const handlePrevDay = () => {
+    const [y, m, d] = currentDateIso.split("-").map(Number);
+    const date = new Date(y, m - 1, d);
+    date.setDate(date.getDate() - 1);
+    const prevIso = date.toISOString().split("T")[0];
+    setCurrentDateIso(prevIso);
+  };
+
+  const handleNextDay = () => {
+    const [y, m, d] = currentDateIso.split("-").map(Number);
+    const date = new Date(y, m - 1, d);
+    date.setDate(date.getDate() + 1);
+    const nextIso = date.toISOString().split("T")[0];
+    setCurrentDateIso(nextIso);
+  };
+
+  const handleToday = () => {
+    setCurrentDateIso("2026-09-09");
+  };
+
   const TIME_SLOTS = [
     "14:00 - 15:30",
     "15:30 - 17:00",
@@ -158,10 +204,17 @@ export default function OwnerDashboard() {
     "23:00 - 00:30",
   ];
 
+  const readableDate = formatDateReadable(currentDateIso);
+
   const getBookingForSlot = (courtId: string, timeSlot: string) => {
-    return bookings.find(
-      (b) => b.court_id === courtId && b.time_slot === timeSlot && (b.booking_type === "fixed" || b.date_str === selectedDate || !b.date_str)
-    );
+    return bookings.find((b) => {
+      if (b.court_id !== courtId || b.time_slot !== timeSlot || b.status === "canceled") return false;
+      if (b.booking_type === "fixed") return true;
+      if (b.date_str === currentDateIso) return true;
+      if (b.date_str === readableDate) return true;
+      if (currentDateIso === "2026-09-09" && (b.date_str === "Hoy, 9 de Septiembre" || b.date_str === "Hoy")) return true;
+      return false;
+    });
   };
 
   const handleOpenSlot = (courtId: string, timeSlot: string) => {
@@ -198,7 +251,7 @@ export default function OwnerDashboard() {
           court_id: selectedSlot.courtId,
           player_name: bookingFormData.isBlocked ? "Horario Bloqueado" : bookingFormData.playerName,
           player_phone: bookingFormData.isBlocked ? "-" : bookingFormData.playerPhone,
-          date_str: selectedDate,
+          date_str: currentDateIso,
           time_slot: selectedSlot.timeSlot,
           price: bookingFormData.isBlocked ? 0 : Number(bookingFormData.price),
           deposit: bookingFormData.isBlocked ? 0 : Number(bookingFormData.depositPaid),
@@ -235,10 +288,19 @@ export default function OwnerDashboard() {
     }
   };
 
+  // Day stats
+  const activeDayBookings = bookings.filter((b) => {
+    if (b.status === "canceled") return false;
+    if (b.booking_type === "fixed") return true;
+    if (b.date_str === currentDateIso || b.date_str === readableDate) return true;
+    if (currentDateIso === "2026-09-09" && (b.date_str === "Hoy, 9 de Septiembre" || b.date_str === "Hoy")) return true;
+    return false;
+  });
+
   const totalSlotsCount = (courts.length || 1) * TIME_SLOTS.length;
-  const occupiedSlotsCount = bookings.filter((b) => b.status !== "blocked").length;
+  const occupiedSlotsCount = activeDayBookings.filter((b) => b.status !== "blocked").length;
   const occupationRate = Math.round((occupiedSlotsCount / totalSlotsCount) * 100) || 0;
-  const totalIncomeToday = bookings.reduce((sum, b) => sum + (Number(b.deposit_paid) || 0), 0);
+  const totalIncomeSelectedDay = activeDayBookings.reduce((sum, b) => sum + (Number(b.deposit_paid) || 0), 0);
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 font-sans">
@@ -301,7 +363,7 @@ export default function OwnerDashboard() {
       <main className="max-w-7xl mx-auto px-6 py-8 space-y-8">
         <section className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="bg-slate-900/70 border border-slate-800 p-5 rounded-2xl">
-            <p className="text-xs font-medium text-slate-400">Ocupación Hoy</p>
+            <p className="text-xs font-medium text-slate-400">Ocupación del Día</p>
             <h3 className="text-2xl font-bold mt-1 text-white">{occupationRate}%</h3>
             <p className="text-xs text-blue-400 mt-1 flex items-center gap-1">
               <Flame className="h-3.5 w-3.5" /> {occupiedSlotsCount} de {totalSlotsCount} turnos
@@ -309,9 +371,9 @@ export default function OwnerDashboard() {
           </div>
 
           <div className="bg-slate-900/70 border border-slate-800 p-5 rounded-2xl">
-            <p className="text-xs font-medium text-slate-400">Señas Cobradas (MP)</p>
+            <p className="text-xs font-medium text-slate-400">Señas Cobradas (Día)</p>
             <h3 className="text-2xl font-bold mt-1 text-emerald-400">
-              ${totalIncomeToday.toLocaleString()}
+              ${totalIncomeSelectedDay.toLocaleString()}
             </h3>
             <p className="text-xs text-slate-400 mt-1">Confirmadas en el sistema</p>
           </div>
@@ -336,12 +398,57 @@ export default function OwnerDashboard() {
 
         {activeTab === "grid" && (
           <div className="space-y-4">
-            <div className="flex justify-between items-center bg-slate-900/80 border border-slate-800 p-4 rounded-2xl">
-              <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white font-semibold text-sm">
-                <CalendarIcon className="h-4 w-4 text-blue-400" />
-                <span>{selectedDate}</span>
+            {/* Navegador Completo del Calendario Anual */}
+            <div className="flex flex-col sm:flex-row justify-between items-center gap-4 bg-slate-900/80 border border-slate-800 p-4 rounded-2xl shadow-lg">
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                <button
+                  onClick={handlePrevDay}
+                  className="p-2 rounded-xl bg-slate-950 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white transition"
+                  title="Día anterior"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </button>
+
+                <div
+                  onClick={() => dateInputRef.current?.showPicker()}
+                  className="flex-1 sm:flex-initial flex items-center gap-2.5 px-4 py-2 rounded-xl bg-slate-950 border border-slate-800 hover:border-blue-500/80 cursor-pointer transition shadow-inner group"
+                >
+                  <CalendarDays className="h-4 w-4 text-blue-400 group-hover:scale-110 transition" />
+                  <span className="text-sm font-bold text-white">{readableDate}</span>
+                  <span className="text-[10px] text-blue-400 bg-blue-500/10 border border-blue-500/20 px-2 py-0.5 rounded-md font-medium ml-1">
+                    Abrir Calendario 📅
+                  </span>
+                </div>
+
+                <input
+                  type="date"
+                  ref={dateInputRef}
+                  value={currentDateIso}
+                  onChange={(e) => {
+                    if (e.target.value) setCurrentDateIso(e.target.value);
+                  }}
+                  className="sr-only"
+                />
+
+                <button
+                  onClick={handleNextDay}
+                  className="p-2 rounded-xl bg-slate-950 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white transition"
+                  title="Día siguiente"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+
+                <button
+                  onClick={handleToday}
+                  className="px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs font-semibold text-slate-300 hover:text-white transition"
+                >
+                  Hoy
+                </button>
               </div>
-              <div className="text-xs text-slate-400">Hacé clic en cualquier turno para ver saldo, detalles o liberar la pista</div>
+
+              <div className="text-xs text-slate-400">
+                Hacé clic en cualquier casillero libre para reservar o en uno ocupado para ver saldo y detalles
+              </div>
             </div>
 
             <div className="bg-slate-900/80 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
@@ -395,7 +502,7 @@ export default function OwnerDashboard() {
                                     <div className="font-semibold flex items-center justify-between">
                                       <span className="truncate">{booking.player_name}</span>
                                       {booking.booking_type === "fixed" && (
-                                        <span className="inline-flex items-center gap-0.5 text-[9px] bg-blue-500/20 text-blue-300 border border-blue-500/40 px-1.5 py-0.2 rounded font-bold ml-1 flex-shrink-0">
+                                        <span className="inline-flex items-center gap-0.5 text-[9px] bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 px-1.5 py-0.2 rounded font-bold ml-1 flex-shrink-0">
                                           <Repeat className="h-2.5 w-2.5" /> Fijo
                                         </span>
                                       )}
@@ -573,9 +680,15 @@ export default function OwnerDashboard() {
               <button onClick={() => setIsModalOpen(false)} className="text-slate-400">✕</button>
             </div>
             <form onSubmit={handleSaveBooking} className="space-y-3">
-              <div className="p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs flex justify-between items-center">
-                <span className="text-slate-400">Horario:</span>
-                <span className="text-white font-bold">{selectedSlot.timeSlot}</span>
+              <div className="p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs space-y-1">
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-400">Fecha:</span>
+                  <span className="text-white font-semibold">{readableDate}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-400">Horario:</span>
+                  <span className="text-white font-bold">{selectedSlot.timeSlot}</span>
+                </div>
               </div>
 
               {/* Selector de Tipo de Turno: Casual vs Fijo */}
