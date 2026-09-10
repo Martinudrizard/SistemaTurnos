@@ -116,21 +116,15 @@ export async function sendOwnerCredentialsEmail({
 
   try {
     const transporter = nodemailer.createTransport({
-      host: 'smtp.gmail.com',
-      port: 587,
-      secure: false, // STARTTLS for port 587
+      service: 'gmail',
       auth: {
         user: smtpUser,
         pass: smtpPass,
       },
-      family: 4,
-      connectionTimeout: 10000,
-      greetingTimeout: 10000,
-      socketTimeout: 15000,
       tls: {
         rejectUnauthorized: false,
       },
-    } as any);
+    });
 
     const info = await transporter.sendMail({
       from: `"PadelHub Core" <${fromEmail}>`,
