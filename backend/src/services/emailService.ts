@@ -136,7 +136,40 @@ export async function sendOwnerCredentialsEmail({
     }
   }
 
-  const msg = 'No se pudo enviar el correo: verifique las credenciales de Gmail o Resend.';
+  // 3. Fallback a Brevo (Sendinblue) HTTP API (Envía a cualquier destinatario vía HTTPS puerto 443)
+  const brevoApiKey = process.env.BREVO_API_KEY?.trim() || process.env.SIB_API_KEY?.trim();
+  if (brevoApiKey) {
+    try {
+      const res = await fetch('https://api.brevo.com/v3/smtp/email', {
+        method: 'POST',
+        headers: {
+          'api-key': brevoApiKey,
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        body: JSON.stringify({
+          sender: { name: 'PadelHub', email: fromEmail || 'marudri58@gmail.com' },
+          to: [{ email: toEmail, name: ownerName }],
+          subject: `🎾 Tus credenciales de acceso a PadelHub - ${clubName}`,
+          htmlContent: htmlContent,
+        }),
+      });
+
+      const data: any = await res.json();
+      if (res.ok) {
+        console.log(`[EmailService] ¡Correo enviado vía Brevo API a ${toEmail}! MessageId:`, data.messageId);
+        return { success: true, messageId: data.messageId };
+      } else {
+        console.error('[EmailService] Brevo API Error:', data);
+        return { success: false, error: data.message || 'Error en Brevo API' };
+      }
+    } catch (err: any) {
+      console.error('[EmailService] Error al conectar con Brevo HTTP API:', err);
+      return { success: false, error: err.message };
+    }
+  }
+
+  const msg = 'No se pudo enviar el correo: verifique las credenciales de Gmail, Resend o Brevo.';
   console.warn(`[EmailService] ${msg}`);
   return { success: false, error: msg };
 }
