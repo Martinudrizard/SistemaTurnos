@@ -14,6 +14,8 @@ import {
   Trash2,
   MessageCircle,
   Lock,
+  Repeat,
+  Zap,
 } from "lucide-react";
 
 interface Court {
@@ -32,10 +34,12 @@ interface Booking {
   player_name: string;
   player_phone: string;
   player_email?: string;
+  date_str?: string;
   time_slot: string;
   status: string;
   price: number;
   deposit_paid: number;
+  booking_type?: "casual" | "fixed";
   via_bot: boolean;
 }
 
@@ -75,6 +79,7 @@ export default function OwnerDashboard() {
     playerPhone: "",
     price: 14000,
     depositPaid: 0,
+    bookingType: "casual" as "casual" | "fixed",
     isBlocked: false,
   });
 
@@ -154,7 +159,9 @@ export default function OwnerDashboard() {
   ];
 
   const getBookingForSlot = (courtId: string, timeSlot: string) => {
-    return bookings.find((b) => b.court_id === courtId && b.time_slot === timeSlot);
+    return bookings.find(
+      (b) => b.court_id === courtId && b.time_slot === timeSlot && (b.booking_type === "fixed" || b.date_str === selectedDate || !b.date_str)
+    );
   };
 
   const handleOpenSlot = (courtId: string, timeSlot: string) => {
@@ -169,7 +176,8 @@ export default function OwnerDashboard() {
         playerName: "",
         playerPhone: "",
         price: autoPrice,
-        depositPaid: 0, // Default 0 for manual booking by club owner
+        depositPaid: 0,
+        bookingType: "casual",
         isBlocked: false,
       });
       setIsModalOpen(true);
@@ -194,6 +202,7 @@ export default function OwnerDashboard() {
           time_slot: selectedSlot.timeSlot,
           price: bookingFormData.isBlocked ? 0 : Number(bookingFormData.price),
           deposit: bookingFormData.isBlocked ? 0 : Number(bookingFormData.depositPaid),
+          booking_type: bookingFormData.bookingType,
           is_blocked: bookingFormData.isBlocked,
         }),
       });
@@ -201,6 +210,9 @@ export default function OwnerDashboard() {
       if (res.ok) {
         const savedBooking = await res.json();
         setBookings([...bookings, savedBooking]);
+      } else {
+        const err = await res.json();
+        alert(err.error || "No se pudo registrar el turno");
       }
     } catch (err) {
       console.warn("Fallback booking saved");
@@ -329,7 +341,7 @@ export default function OwnerDashboard() {
                 <CalendarIcon className="h-4 w-4 text-blue-400" />
                 <span>{selectedDate}</span>
               </div>
-              <div className="text-xs text-slate-400">Hacé clic en cualquier turno para ver detalles o liberar la pista</div>
+              <div className="text-xs text-slate-400">Hacé clic en cualquier turno para ver saldo, detalles o liberar la pista</div>
             </div>
 
             <div className="bg-slate-900/80 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
@@ -339,7 +351,7 @@ export default function OwnerDashboard() {
                     <tr className="bg-slate-950/80 text-slate-400 text-xs border-b border-slate-800">
                       <th className="p-4 w-36 font-semibold border-r border-slate-800/80">Horario</th>
                       {courts.map((court) => (
-                        <th key={court.id} className="p-4 font-semibold border-r border-slate-800/80 min-w-[200px]">
+                        <th key={court.id} className="p-4 font-semibold border-r border-slate-800/80 min-w-[220px]">
                           <div className="text-white text-sm">{court.name}</div>
                           <div className="text-[11px] text-slate-400 font-normal">{court.surface}</div>
                         </th>
@@ -349,6 +361,8 @@ export default function OwnerDashboard() {
                   <tbody className="divide-y divide-slate-800/60 text-xs">
                     {TIME_SLOTS.map((slot) => {
                       const isNightSlot = slot >= clubSettings.light_start_time;
+                      const defaultSlotPrice = isNightSlot ? clubSettings.price_night : clubSettings.price_day;
+
                       return (
                         <tr key={slot} className="hover:bg-slate-800/20 transition">
                           <td className="p-4 font-semibold text-slate-300 border-r border-slate-800/80 bg-slate-950/30 flex items-center justify-between">
@@ -363,7 +377,10 @@ export default function OwnerDashboard() {
                           </td>
                           {courts.map((court) => {
                             const booking = getBookingForSlot(court.id, slot);
-                            const depositNum = Number(booking?.deposit_paid) || 0;
+                            const slotPrice = booking ? (Number(booking.price) || defaultSlotPrice) : defaultSlotPrice;
+                            const depositNum = booking ? (Number(booking.deposit_paid) || 0) : 0;
+                            const remainingBalance = Math.max(0, slotPrice - depositNum);
+
                             return (
                               <td key={court.id} className="p-2 border-r border-slate-800/80">
                                 {booking ? (
@@ -376,25 +393,32 @@ export default function OwnerDashboard() {
                                     }`}
                                   >
                                     <div className="font-semibold flex items-center justify-between">
-                                      <span>{booking.player_name}</span>
-                                      {booking.status === "blocked" && <Lock className="h-3 w-3 text-red-400" />}
-                                    </div>
-                                    <div className="text-[10px] text-slate-400 mt-0.5">
-                                      {booking.status === "blocked" ? (
-                                        "Bloqueado por el club"
-                                      ) : depositNum > 0 ? (
-                                        `Seña: $${depositNum.toLocaleString()}`
-                                      ) : (
-                                        <span className="text-amber-400/90 font-medium">Sin seña (Paga en club)</span>
+                                      <span className="truncate">{booking.player_name}</span>
+                                      {booking.booking_type === "fixed" && (
+                                        <span className="inline-flex items-center gap-0.5 text-[9px] bg-blue-500/20 text-blue-300 border border-blue-500/40 px-1.5 py-0.2 rounded font-bold ml-1 flex-shrink-0">
+                                          <Repeat className="h-2.5 w-2.5" /> Fijo
+                                        </span>
                                       )}
+                                      {booking.status === "blocked" && <Lock className="h-3 w-3 text-red-400 ml-1 flex-shrink-0" />}
                                     </div>
+
+                                    {booking.status !== "blocked" && (
+                                      <div className="text-[11px] mt-1 space-y-0.5">
+                                        <div className="flex justify-between items-center text-slate-300">
+                                          <span>Seña: ${depositNum.toLocaleString()}</span>
+                                          <span className="font-bold text-amber-300">
+                                            {remainingBalance === 0 ? "Pagado 100%" : `Debe: $${remainingBalance.toLocaleString()}`}
+                                          </span>
+                                        </div>
+                                      </div>
+                                    )}
                                   </button>
                                 ) : (
                                   <button
                                     onClick={() => handleOpenSlot(court.id, slot)}
                                     className="w-full text-center py-4 rounded-xl border border-dashed border-slate-800 hover:border-blue-500 hover:bg-blue-500/5 text-slate-500 hover:text-blue-400 transition text-xs font-medium"
                                   >
-                                    + Libre (${(isNightSlot ? clubSettings.price_night : clubSettings.price_day).toLocaleString()})
+                                    + Libre (${defaultSlotPrice.toLocaleString()})
                                   </button>
                                 )}
                               </td>
@@ -540,7 +564,7 @@ export default function OwnerDashboard() {
         )}
       </main>
 
-      {/* Modal: Crear Reserva Manual */}
+      {/* Modal: Crear Reserva Manual (Casual o Fijo) */}
       {isModalOpen && selectedSlot && (
         <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-6 space-y-4 shadow-2xl">
@@ -554,6 +578,44 @@ export default function OwnerDashboard() {
                 <span className="text-white font-bold">{selectedSlot.timeSlot}</span>
               </div>
 
+              {/* Selector de Tipo de Turno: Casual vs Fijo */}
+              <div className="space-y-1.5">
+                <label className="text-xs text-slate-300 font-medium">Modalidad del Turno</label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setBookingFormData({ ...bookingFormData, bookingType: "casual" })}
+                    className={`p-2.5 rounded-xl border text-left transition flex flex-col gap-0.5 ${
+                      bookingFormData.bookingType === "casual"
+                        ? "bg-blue-600/20 border-blue-500 text-white"
+                        : "bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700"
+                    }`}
+                  >
+                    <div className="flex items-center gap-1.5 text-xs font-bold">
+                      <Zap className="h-3.5 w-3.5 text-blue-400" />
+                      <span>Turno Casual</span>
+                    </div>
+                    <span className="text-[10px] text-slate-400">Solo para este día</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setBookingFormData({ ...bookingFormData, bookingType: "fixed" })}
+                    className={`p-2.5 rounded-xl border text-left transition flex flex-col gap-0.5 ${
+                      bookingFormData.bookingType === "fixed"
+                        ? "bg-indigo-600/20 border-indigo-500 text-white"
+                        : "bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700"
+                    }`}
+                  >
+                    <div className="flex items-center gap-1.5 text-xs font-bold">
+                      <Repeat className="h-3.5 w-3.5 text-indigo-400" />
+                      <span>Turno Fijo</span>
+                    </div>
+                    <span className="text-[10px] text-slate-400">Bloquea todos los días</span>
+                  </button>
+                </div>
+              </div>
+
               <div className="flex items-center gap-2 p-2 bg-slate-950/60 border border-slate-800 rounded-xl">
                 <input
                   type="checkbox"
@@ -563,7 +625,7 @@ export default function OwnerDashboard() {
                   className="rounded text-blue-600 focus:ring-0"
                 />
                 <label htmlFor="isBlocked" className="text-xs text-slate-300 font-medium cursor-pointer">
-                  Bloquear este horario (Mantenimiento / Fijo)
+                  Bloquear este horario (Mantenimiento / Fijo sin jugador)
                 </label>
               </div>
 
@@ -592,42 +654,45 @@ export default function OwnerDashboard() {
                     />
                   </div>
 
-                  <div className="space-y-1">
-                    <div className="flex justify-between items-center">
-                      <label className="text-xs text-slate-300">Seña Cobrada ($)</label>
-                      <div className="flex items-center gap-1.5">
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="space-y-1">
+                      <label className="text-xs text-slate-300">Precio Total ($)</label>
+                      <input
+                        type="number"
+                        min="0"
+                        value={bookingFormData.price}
+                        onChange={(e) => setBookingFormData({ ...bookingFormData, price: Number(e.target.value) })}
+                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <div className="flex justify-between items-center">
+                        <label className="text-xs text-slate-300">Seña ($)</label>
                         <button
                           type="button"
                           onClick={() => setBookingFormData({ ...bookingFormData, depositPaid: 0 })}
-                          className={`text-[10px] px-2 py-0.5 rounded border transition ${
-                            bookingFormData.depositPaid === 0
-                              ? "bg-amber-500/20 text-amber-300 border-amber-500/40 font-bold"
-                              : "text-slate-400 border-slate-800 hover:text-white"
-                          }`}
+                          className="text-[10px] text-amber-400 hover:underline"
                         >
-                          Sin seña ($0)
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setBookingFormData({ ...bookingFormData, depositPaid: clubSettings.deposit_amount })}
-                          className={`text-[10px] px-2 py-0.5 rounded border transition ${
-                            bookingFormData.depositPaid === clubSettings.deposit_amount
-                              ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/40 font-bold"
-                              : "text-slate-400 border-slate-800 hover:text-white"
-                          }`}
-                        >
-                          Seña completa (${clubSettings.deposit_amount.toLocaleString()})
+                          $0
                         </button>
                       </div>
+                      <input
+                        type="number"
+                        min="0"
+                        value={bookingFormData.depositPaid}
+                        onChange={(e) => setBookingFormData({ ...bookingFormData, depositPaid: Number(e.target.value) })}
+                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white"
+                      />
                     </div>
-                    <input
-                      type="number"
-                      min="0"
-                      value={bookingFormData.depositPaid}
-                      onChange={(e) => setBookingFormData({ ...bookingFormData, depositPaid: Number(e.target.value) })}
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white"
-                    />
-                    <p className="text-[10px] text-slate-400">Si es un amigo o pagó en el club, podés dejarlo en $0.</p>
+                  </div>
+
+                  {/* Diferencia calculada en vivo */}
+                  <div className="p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs flex justify-between items-center">
+                    <span className="text-slate-400">Resta cobrar en el club:</span>
+                    <span className="font-bold text-amber-400 text-sm">
+                      ${Math.max(0, bookingFormData.price - bookingFormData.depositPaid).toLocaleString()}
+                    </span>
                   </div>
                 </>
               )}
@@ -651,6 +716,19 @@ export default function OwnerDashboard() {
             </div>
 
             <div className="bg-slate-950 border border-slate-800 rounded-xl p-4 space-y-2.5 text-xs">
+              <div className="flex justify-between items-center">
+                <span className="text-slate-400">Modalidad:</span>
+                {activeBookingDetails.booking_type === "fixed" ? (
+                  <span className="inline-flex items-center gap-1 text-[10px] bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 px-2 py-0.5 rounded-md font-bold">
+                    <Repeat className="h-3 w-3" /> Turno Fijo Recurrente
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 text-[10px] bg-blue-500/20 text-blue-300 border border-blue-500/40 px-2 py-0.5 rounded-md font-bold">
+                    <Zap className="h-3 w-3" /> Turno Casual
+                  </span>
+                )}
+              </div>
+
               <div className="flex justify-between">
                 <span className="text-slate-400">Jugador / Titular:</span>
                 <span className="text-white font-bold">{activeBookingDetails.player_name}</span>
@@ -673,11 +751,17 @@ export default function OwnerDashboard() {
                 </div>
               )}
               <div className="flex justify-between border-t border-slate-800 pt-2">
+                <span className="text-slate-400">Precio Total:</span>
+                <span className="font-semibold text-white">${(Number(activeBookingDetails.price) || 14000).toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between">
                 <span className="text-slate-400">Seña Abonada:</span>
-                <span className="font-bold text-emerald-400">
-                  {Number(activeBookingDetails.deposit_paid) > 0
-                    ? `$${Number(activeBookingDetails.deposit_paid).toLocaleString()}`
-                    : "Sin seña ($0 - Paga en club)"}
+                <span className="font-semibold text-emerald-400">${(Number(activeBookingDetails.deposit_paid) || 0).toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between border-t border-slate-800/80 pt-2">
+                <span className="text-slate-400 font-medium">Resta Cobrar (Debe):</span>
+                <span className="font-bold text-amber-400 text-sm">
+                  ${Math.max(0, (Number(activeBookingDetails.price) || 14000) - (Number(activeBookingDetails.deposit_paid) || 0)).toLocaleString()}
                 </span>
               </div>
             </div>
@@ -689,7 +773,7 @@ export default function OwnerDashboard() {
                 className="flex items-center gap-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 px-3.5 py-2 rounded-xl text-xs font-semibold transition"
               >
                 <Trash2 className="h-3.5 w-3.5" />
-                <span>Liberar / Cancelar Turno</span>
+                <span>Liberar Turno</span>
               </button>
               <button
                 type="button"

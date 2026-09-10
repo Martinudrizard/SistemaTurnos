@@ -17,6 +17,7 @@ import {
   Sun,
   Moon,
   Zap,
+  Lock,
 } from "lucide-react";
 
 interface Club {
@@ -42,6 +43,15 @@ interface Court {
   indoor: boolean;
 }
 
+interface Reservation {
+  id: string;
+  court_id: string;
+  time_slot: string;
+  date_str: string;
+  booking_type?: "casual" | "fixed";
+  status: string;
+}
+
 interface Slot {
   id: string;
   courtId: string;
@@ -52,24 +62,25 @@ interface Slot {
   price: number;
   deposit: number;
   isNight: boolean;
+  isOccupied: boolean;
 }
 
 const DATES = [
-  { dayName: "Hoy", dateStr: "Mié 9 Sep", fullDate: "2026-09-09" },
-  { dayName: "Mañana", dateStr: "Jue 10 Sep", fullDate: "2026-09-10" },
-  { dayName: "Viernes", dateStr: "11 Sep", fullDate: "2026-09-11" },
-  { dayName: "Sábado", dateStr: "12 Sep", fullDate: "2026-09-12" },
-  { dayName: "Domingo", dateStr: "13 Sep", fullDate: "2026-09-13" },
+  { dayName: "Hoy", dateStr: "Mié 9 Sep", fullDate: "Hoy, 9 de Septiembre" },
+  { dayName: "Mañana", dateStr: "Jue 10 Sep", fullDate: "Jueves 10 de Septiembre" },
+  { dayName: "Viernes", dateStr: "11 Sep", fullDate: "Viernes 11 de Septiembre" },
+  { dayName: "Sábado", dateStr: "12 Sep", fullDate: "Sábado 12 de Septiembre" },
+  { dayName: "Domingo", dateStr: "13 Sep", fullDate: "Domingo 13 de Septiembre" },
 ];
 
 const TIME_SLOTS = [
-  "14:00 a 15:30",
-  "15:30 a 17:00",
-  "17:00 a 18:30",
-  "18:30 a 20:00",
-  "20:00 a 21:30",
-  "21:30 a 23:00",
-  "23:00 a 00:30",
+  "14:00 - 15:30",
+  "15:30 - 17:00",
+  "17:00 - 18:30",
+  "18:30 - 20:00",
+  "20:00 - 21:30",
+  "21:30 - 23:00",
+  "23:00 - 00:30",
 ];
 
 export default function DynamicClubBookingPage() {
@@ -78,6 +89,7 @@ export default function DynamicClubBookingPage() {
 
   const [club, setClub] = useState<Club | null>(null);
   const [courts, setCourts] = useState<Court[]>([]);
+  const [reservations, setReservations] = useState<Reservation[]>([]);
   const [selectedDate, setSelectedDate] = useState(DATES[0]);
   const [filterIndoor, setFilterIndoor] = useState<string>("all");
   const [selectedSlot, setSelectedSlot] = useState<Slot | null>(null);
@@ -92,37 +104,43 @@ export default function DynamicClubBookingPage() {
     phone: "",
   });
 
-  useEffect(() => {
-    async function fetchClubAndCourts() {
-      try {
-        const clubsRes = await fetch("https://padel-saas-backend-production.up.railway.app/api/clubs");
-        if (clubsRes.ok) {
-          const clubs: Club[] = await clubsRes.json();
-          const matchedClub = clubs.find((c) => c.slug === slugParam) || clubs[0];
-          if (matchedClub) {
-            setClub(matchedClub);
-            const courtsRes = await fetch(`https://padel-saas-backend-production.up.railway.app/api/courts/${matchedClub.id}`);
-            if (courtsRes.ok) {
-              const courtsData = await courtsRes.json();
-              setCourts(courtsData);
-            }
+  const loadClubData = async () => {
+    try {
+      const clubsRes = await fetch("https://padel-saas-backend-production.up.railway.app/api/clubs");
+      if (clubsRes.ok) {
+        const clubs: Club[] = await clubsRes.json();
+        const matchedClub = clubs.find((c) => c.slug === slugParam) || clubs[0];
+        if (matchedClub) {
+          setClub(matchedClub);
+          const courtsRes = await fetch(`https://padel-saas-backend-production.up.railway.app/api/courts/${matchedClub.id}`);
+          if (courtsRes.ok) {
+            const courtsData = await courtsRes.json();
+            setCourts(courtsData);
+          }
+          const resRes = await fetch(`https://padel-saas-backend-production.up.railway.app/api/reservations?clubId=${matchedClub.id}`);
+          if (resRes.ok) {
+            const resData = await resRes.json();
+            setReservations(resData);
           }
         }
-      } catch (err) {
-        console.warn("Failed to load dynamic club info");
-      } finally {
-        setLoading(false);
       }
+    } catch (err) {
+      console.warn("Failed to load dynamic club info");
+    } finally {
+      setLoading(false);
     }
-    fetchClubAndCourts();
+  };
+
+  useEffect(() => {
+    loadClubData();
   }, [slugParam]);
 
-  const priceDay = club?.price_day ?? 16000;
-  const priceNight = club?.price_night ?? 20000;
-  const lightStart = club?.light_start_time || "18:00";
+  const priceDay = club?.price_day ?? 14000;
+  const priceNight = club?.price_night ?? 18000;
+  const lightStart = club?.light_start_time || "18:30";
   const depositAmount = club?.deposit_amount ?? 8000;
 
-  // Generate slots dynamically for the club courts with daytime/nighttime pricing
+  // Generate slots dynamically for the club courts with daytime/nighttime pricing & occupancy checks
   const generatedSlots: Slot[] = [];
   const activeCourts = courts.length > 0 ? courts : [
     { id: "c1", club_id: club?.id || "default", name: "Cancha 1 (Cristal)", surface: "Cristal Panorámico", indoor: true },
@@ -131,9 +149,18 @@ export default function DynamicClubBookingPage() {
 
   activeCourts.forEach((court, cIdx) => {
     TIME_SLOTS.forEach((ts, tIdx) => {
-      const slotStartTime = ts.split(" a ")[0]; // e.g. "18:30"
+      const slotStartTime = ts.split(" - ")[0]; // e.g. "18:30"
       const isNight = slotStartTime >= lightStart;
       const slotPrice = isNight ? priceNight : priceDay;
+
+      // Check if slot is occupied on this date or has a fixed permanent booking
+      const isOccupied = reservations.some(
+        (r) =>
+          r.court_id === court.id &&
+          r.time_slot === ts &&
+          r.status !== "canceled" &&
+          (r.booking_type === "fixed" || r.date_str === selectedDate.fullDate || r.date_str === "Hoy, 9 de Septiembre")
+      );
 
       generatedSlots.push({
         id: `slot-${cIdx}-${tIdx}`,
@@ -145,6 +172,7 @@ export default function DynamicClubBookingPage() {
         price: slotPrice,
         deposit: depositAmount,
         isNight,
+        isOccupied,
       });
     });
   });
@@ -156,6 +184,7 @@ export default function DynamicClubBookingPage() {
   });
 
   const handleSelectSlot = (slot: Slot) => {
+    if (slot.isOccupied) return;
     setSelectedSlot(slot);
     setCheckoutStep("form");
     setIsCheckoutOpen(true);
@@ -166,7 +195,7 @@ export default function DynamicClubBookingPage() {
     setCheckoutStep("mercadopago");
 
     try {
-      await fetch("https://padel-saas-backend-production.up.railway.app/api/reservations", {
+      const res = await fetch("https://padel-saas-backend-production.up.railway.app/api/reservations", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -175,12 +204,17 @@ export default function DynamicClubBookingPage() {
           player_name: `${playerForm.firstName} ${playerForm.lastName}`.trim(),
           player_phone: playerForm.phone,
           player_email: playerForm.email,
-          date_str: `${selectedDate.dayName} ${selectedDate.dateStr}`,
+          date_str: selectedDate.fullDate,
           time_slot: selectedSlot?.timeSlot,
           price: selectedSlot?.price || priceDay,
           deposit: selectedSlot?.deposit || depositAmount,
+          booking_type: "casual",
         }),
       });
+
+      if (res.ok) {
+        loadClubData();
+      }
     } catch (e) {
       console.warn("Reservation saved");
     }
@@ -235,7 +269,7 @@ export default function DynamicClubBookingPage() {
                 <span>{clubDisplayCity}</span>
                 <span>•</span>
                 <Clock className="h-3.5 w-3.5 text-slate-500" />
-                <span>{club?.open_time || "08:00"} a {club?.close_time || "01:00"} hs</span>
+                <span>{club?.open_time || "14:00"} a {club?.close_time || "01:00"} hs</span>
               </div>
             </div>
 
@@ -254,7 +288,7 @@ export default function DynamicClubBookingPage() {
                 <div className="text-sm font-bold text-indigo-300">${priceNight.toLocaleString()}</div>
               </div>
               <div className="px-3 py-1 text-left">
-                <div className="text-[11px] text-slate-400">Seña fija</div>
+                <div className="text-[11px] text-slate-400">Seña online</div>
                 <div className="text-sm font-bold text-emerald-400">${depositAmount.toLocaleString()}</div>
               </div>
             </div>
@@ -342,10 +376,18 @@ export default function DynamicClubBookingPage() {
           {filteredSlots.map((slot) => (
             <div
               key={slot.id}
-              className="bg-slate-900/80 border border-slate-800 hover:border-emerald-500/50 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition shadow-md group"
+              className={`bg-slate-900/80 border rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition shadow-md ${
+                slot.isOccupied
+                  ? "border-slate-800/60 opacity-60 bg-slate-950/40"
+                  : "border-slate-800 hover:border-emerald-500/50 group"
+              }`}
             >
               <div className="flex items-start gap-3">
-                <div className="p-3 bg-slate-950 border border-slate-800 rounded-xl text-emerald-400 group-hover:scale-105 transition">
+                <div className={`p-3 rounded-xl border transition ${
+                  slot.isOccupied
+                    ? "bg-slate-900 border-slate-800 text-slate-600"
+                    : "bg-slate-950 border-slate-800 text-emerald-400 group-hover:scale-105"
+                }`}>
                   <Clock className="h-5 w-5" />
                 </div>
                 <div>
@@ -375,20 +417,29 @@ export default function DynamicClubBookingPage() {
               </div>
 
               <div className="flex items-center justify-between sm:justify-end gap-4 pt-3 sm:pt-0 border-t sm:border-t-0 border-slate-800/80">
-                <div className="text-left sm:text-right">
-                  <div className="text-xs text-slate-400">Total: ${slot.price.toLocaleString()}</div>
-                  <div className="text-sm font-bold text-emerald-400">
-                    Seña: ${slot.deposit.toLocaleString()}
-                  </div>
-                </div>
+                {!slot.isOccupied ? (
+                  <>
+                    <div className="text-left sm:text-right">
+                      <div className="text-xs text-slate-400">Total: ${slot.price.toLocaleString()}</div>
+                      <div className="text-sm font-bold text-emerald-400">
+                        Seña: ${slot.deposit.toLocaleString()}
+                      </div>
+                    </div>
 
-                <button
-                  onClick={() => handleSelectSlot(slot)}
-                  className="flex items-center gap-1.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold px-4 py-2.5 rounded-xl text-xs transition shadow-lg shadow-emerald-500/10"
-                >
-                  <span>Reservar</span>
-                  <ChevronRight className="h-3.5 w-3.5" />
-                </button>
+                    <button
+                      onClick={() => handleSelectSlot(slot)}
+                      className="flex items-center gap-1.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold px-4 py-2.5 rounded-xl text-xs transition shadow-lg shadow-emerald-500/10"
+                    >
+                      <span>Reservar</span>
+                      <ChevronRight className="h-3.5 w-3.5" />
+                    </button>
+                  </>
+                ) : (
+                  <div className="flex items-center gap-2 text-xs text-slate-500 font-medium px-4 py-2 rounded-xl bg-slate-950 border border-slate-800/80">
+                    <Lock className="h-3.5 w-3.5 text-slate-600" />
+                    <span>Reservado / Ocupado</span>
+                  </div>
+                )}
               </div>
             </div>
           ))}
