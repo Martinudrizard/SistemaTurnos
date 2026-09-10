@@ -36,7 +36,12 @@ export const initDb = async () => {
       ALTER TABLE clubs ADD COLUMN IF NOT EXISTS price_night NUMERIC(10,2) DEFAULT 18000;
       ALTER TABLE clubs ADD COLUMN IF NOT EXISTS light_start_time VARCHAR(10) DEFAULT '18:30';
       ALTER TABLE clubs ADD COLUMN IF NOT EXISTS deposit_amount NUMERIC(10,2) DEFAULT 8000;
-      ALTER TABLE reservations ADD COLUMN IF NOT EXISTS booking_type VARCHAR(20) DEFAULT 'casual';
+      ALTER TABLE reservations ADD COLUMN IF NOT EXISTS booking_type VARCHAR(50) DEFAULT 'casual';
+      ALTER TABLE reservations ALTER COLUMN date_str TYPE VARCHAR(100);
+      ALTER TABLE reservations ALTER COLUMN time_slot TYPE VARCHAR(50);
+      ALTER TABLE reservations ALTER COLUMN status TYPE VARCHAR(50);
+      ALTER TABLE reservations ALTER COLUMN player_name TYPE VARCHAR(150);
+      ALTER TABLE reservations ALTER COLUMN player_phone TYPE VARCHAR(50);
     `);
     console.log('✅ Verified club pricing and schedule columns in PostgreSQL!');
 
