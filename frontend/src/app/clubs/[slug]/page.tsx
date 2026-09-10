@@ -29,6 +29,7 @@ interface Club {
   price_night?: number;
   light_start_time?: string;
   deposit_amount?: number;
+  custom_whatsapp_msg?: string;
   status?: string;
 }
 
@@ -337,7 +338,23 @@ export default function DynamicClubBookingPage() {
 
   const clubDisplayName = club?.name || "Complejo de Pádel";
   const clubDisplayCity = club?.city || "Argentina";
-  const clubPhoneClean = (club?.phone || "+54 9 343 555-1234").replace(/[^0-9]/g, "");
+
+  const formatClubWhatsApp = (rawPhone?: string) => {
+    if (!rawPhone) return "5493447642471";
+    let clean = rawPhone.replace(/[^0-9]/g, "");
+    if (clean.startsWith("0")) clean = clean.substring(1);
+    if (!clean.startsWith("54")) {
+      clean = `549${clean}`;
+    } else if (clean.startsWith("54") && !clean.startsWith("549") && clean.length === 12) {
+      clean = `549${clean.substring(2)}`;
+    }
+    return clean;
+  };
+
+  const clubPhoneClean = formatClubWhatsApp(club?.phone);
+  const clubWhatsAppWelcome = club?.custom_whatsapp_msg
+    ? encodeURIComponent(club.custom_whatsapp_msg)
+    : encodeURIComponent(`¡Hola! Quería consultar por un turno en ${clubDisplayName}`);
 
   if (club && club.status === "inactive") {
     return (
@@ -377,7 +394,7 @@ export default function DynamicClubBookingPage() {
         </div>
 
         <a
-          href={`https://wa.me/${clubPhoneClean}?text=Hola!%20Quería%20consultar%20por%20un%20turno%20en%20${encodeURIComponent(clubDisplayName)}`}
+          href={`https://wa.me/${clubPhoneClean}?text=${clubWhatsAppWelcome}`}
           target="_blank"
           rel="noreferrer"
           className="flex items-center gap-1.5 bg-[#00D084]/10 hover:bg-[#00D084]/20 text-[#00D084] border border-[#00D084]/30 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition"

@@ -600,6 +600,32 @@ export default function SuperAdminPage() {
 
               <div className="grid grid-cols-2 gap-2">
                 <div className="space-y-1">
+                  <label className="text-xs text-[#8A9B95] font-medium">WhatsApp / Teléfono del Club</label>
+                  <input
+                    required
+                    type="tel"
+                    placeholder="Ej: +54 9 3447 64-2471"
+                    value={formData.phone}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    className="w-full bg-[#06100E] border border-[#16272a] focus:border-[#00D084] rounded-xl px-3 py-2 text-xs text-[#F1F5F3]"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs text-[#8A9B95] font-medium">Cupo Máximo de Canchas</label>
+                  <input
+                    required
+                    type="number"
+                    min="1"
+                    max="50"
+                    value={formData.maxCourts}
+                    onChange={(e) => setFormData({ ...formData, maxCourts: Number(e.target.value) })}
+                    className="w-full bg-[#06100E] border border-[#16272a] focus:border-[#00D084] rounded-xl px-3 py-2 text-xs text-[#F1F5F3]"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-1">
                   <label className="text-xs text-[#8A9B95] font-medium">Nombre del Dueño</label>
                   <input
                     required
@@ -623,30 +649,16 @@ export default function SuperAdminPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-2">
-                <div className="space-y-1">
-                  <label className="text-xs text-[#8A9B95] font-medium">Contraseña Inicial</label>
-                  <input
-                    required
-                    type="text"
-                    placeholder="password123"
-                    value={formData.password}
-                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                    className="w-full bg-[#06100E] border border-[#16272a] focus:border-[#00D084] rounded-xl px-3 py-2 text-xs text-[#F1F5F3]"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-xs text-[#8A9B95] font-medium">Cupo Máximo de Canchas</label>
-                  <input
-                    required
-                    type="number"
-                    min="1"
-                    max="50"
-                    value={formData.maxCourts}
-                    onChange={(e) => setFormData({ ...formData, maxCourts: Number(e.target.value) })}
-                    className="w-full bg-[#06100E] border border-[#16272a] focus:border-[#00D084] rounded-xl px-3 py-2 text-xs text-[#F1F5F3]"
-                  />
-                </div>
+              <div className="space-y-1">
+                <label className="text-xs text-[#8A9B95] font-medium">Contraseña Inicial</label>
+                <input
+                  required
+                  type="text"
+                  placeholder="password123"
+                  value={formData.password}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  className="w-full bg-[#06100E] border border-[#16272a] focus:border-[#00D084] rounded-xl px-3 py-2 text-xs text-[#F1F5F3]"
+                />
               </div>
 
               <div className="pt-3 border-t border-[#16272a] flex justify-end gap-2">
