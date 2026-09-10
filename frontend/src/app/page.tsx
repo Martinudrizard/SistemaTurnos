@@ -4,20 +4,15 @@ import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import {
   Trophy,
-  Sparkles,
   CreditCard,
   MessageCircle,
   Smartphone,
   ArrowRight,
-  Zap,
-  ChevronRight,
-  Check,
-  CheckCircle2,
   Sliders,
-  Clock,
-  ShieldCheck,
-  Calendar,
-  Users,
+  Check,
+  ChevronRight,
+  Sparkles,
+  Zap,
 } from "lucide-react";
 
 function ScrollReveal({
@@ -72,7 +67,7 @@ function ScrollReveal({
   );
 }
 
-// Identical realistic SVG Padel Ball
+// Realistic Padel Ball with exact emerald/volt branding
 function RealisticPadelBall({
   rotation = 0,
   scaleX = 1,
@@ -92,18 +87,15 @@ function RealisticPadelBall({
         transform: `rotate(${rotation}deg) scale(${scaleX}, ${scaleY})`,
         transition: "transform 0.07s linear",
       }}
-      className="relative rounded-full shadow-[0_0_28px_rgba(204,255,0,0.65)]"
+      className="relative rounded-full shadow-[0_0_28px_rgba(0,208,132,0.65)]"
     >
-      <svg
-        viewBox="0 0 100 100"
-        className="w-full h-full rounded-full overflow-hidden"
-      >
+      <svg viewBox="0 0 100 100" className="w-full h-full rounded-full overflow-hidden">
         <defs>
           <radialGradient id="padelFelt" cx="35%" cy="30%" r="65%">
-            <stop offset="0%" stopColor="#f5ff66" />
-            <stop offset="40%" stopColor="#ccff00" />
-            <stop offset="85%" stopColor="#9edb00" />
-            <stop offset="100%" stopColor="#6d9900" />
+            <stop offset="0%" stopColor="#4ADE80" />
+            <stop offset="45%" stopColor="#00D084" />
+            <stop offset="85%" stopColor="#059669" />
+            <stop offset="100%" stopColor="#047857" />
           </radialGradient>
           <radialGradient id="ballShine" cx="30%" cy="25%" r="40%">
             <stop offset="0%" stopColor="#ffffff" stopOpacity="0.85" />
@@ -114,7 +106,7 @@ function RealisticPadelBall({
         {/* Felt Base Sphere */}
         <circle cx="50" cy="50" r="49" fill="url(#padelFelt)" />
 
-        {/* Padel signature curved seam lines */}
+        {/* Padel curved seam lines */}
         <path
           d="M 14 30 C 32 46, 68 46, 86 30"
           fill="none"
@@ -132,30 +124,30 @@ function RealisticPadelBall({
           opacity="0.9"
         />
 
-        {/* Inner seam groove depth */}
+        {/* Groove depth */}
         <path
           d="M 14 31 C 32 47, 68 47, 86 31"
           fill="none"
-          stroke="#709600"
+          stroke="#047857"
           strokeWidth="1.2"
           opacity="0.5"
         />
         <path
           d="M 14 71 C 32 55, 68 55, 86 71"
           fill="none"
-          stroke="#709600"
+          stroke="#047857"
           strokeWidth="1.2"
           opacity="0.5"
         />
 
-        {/* Specular gloss */}
+        {/* Gloss highlight */}
         <circle cx="36" cy="30" r="26" fill="url(#ballShine)" />
       </svg>
     </div>
   );
 }
 
-// Bounces from bottom to top and back as user scrolls
+// Bouncing Padel Ball side-rail
 function BouncingPadelBall() {
   const [scrollY, setScrollY] = useState(0);
   const [clickCount, setClickCount] = useState(0);
@@ -169,22 +161,18 @@ function BouncingPadelBall() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Parabolic cycle from bottom (ground) to top (peak) every 300px
-  const cycle = (scrollY % 300) / 300; // 0 to 1
-  // Parabola: at 0 & 1 y=70 (floor); at 0.5 y=-70 (peak)
+  const cycle = (scrollY % 300) / 300;
   const yOffset = 70 - 140 * 4 * cycle * (1 - cycle);
   const isFloorImpact = cycle < 0.08 || cycle > 0.92;
   const isPeak = cycle > 0.42 && cycle < 0.58;
 
-  // Squash & Stretch physics
   const scaleX = isFloorImpact ? 1.3 : isPeak ? 0.92 : 1;
   const scaleY = isFloorImpact ? 0.72 : isPeak ? 1.12 : 1;
   const rotation = (scrollY * 0.95 + clickCount * 120) % 360;
 
   return (
     <div className="hidden lg:flex fixed right-6 md:right-10 top-1/2 -translate-y-1/2 z-40 pointer-events-auto flex-col items-center select-none group">
-      {/* Side Court Glass Rail Line */}
-      <div className="absolute top-[-180px] bottom-[-180px] w-[2px] bg-gradient-to-b from-transparent via-[#ccff00]/30 to-transparent pointer-events-none" />
+      <div className="absolute top-[-180px] bottom-[-180px] w-[2px] bg-gradient-to-b from-transparent via-[#00D084]/30 to-transparent pointer-events-none" />
 
       {/* Floor Impact Ripple & Shadow */}
       <div
@@ -193,14 +181,14 @@ function BouncingPadelBall() {
           opacity: isFloorImpact ? 0.8 : 0.2,
           transition: "all 0.08s ease-out",
         }}
-        className="absolute w-12 h-3 rounded-full bg-[#ccff00]/40 blur-[3px] pointer-events-none"
+        className="absolute w-12 h-3 rounded-full bg-[#00D084]/40 blur-[3px] pointer-events-none"
       />
 
       {isFloorImpact && (
-        <div className="absolute top-[105px] w-12 h-12 rounded-full border border-[#ccff00]/80 animate-ping pointer-events-none" />
+        <div className="absolute top-[105px] w-12 h-12 rounded-full border border-[#00D084]/80 animate-ping pointer-events-none" />
       )}
 
-      {/* The Realistic Padel Ball */}
+      {/* The Ball */}
       <div
         onClick={() => setClickCount((c) => c + 1)}
         onMouseEnter={() => setIsHovered(true)}
@@ -220,8 +208,7 @@ function BouncingPadelBall() {
         />
       </div>
 
-      {/* Mini Status Tag */}
-      <span className="mt-40 text-[10px] font-bold text-[#ccff00] bg-slate-950/95 border border-[#ccff00]/40 px-2.5 py-0.5 rounded-full opacity-0 group-hover:opacity-100 transition whitespace-nowrap shadow-xl">
+      <span className="mt-40 text-[10px] font-bold text-[#4ADE80] bg-[#0C1517] border border-[#00D084]/40 px-2.5 py-0.5 rounded-full opacity-0 group-hover:opacity-100 transition whitespace-nowrap shadow-xl">
         🎾 ¡Saque y Red!
       </span>
     </div>
@@ -244,24 +231,23 @@ export default function Home() {
   )}`;
 
   return (
-    <div className="min-h-screen bg-[#070a0e] text-slate-100 font-sans selection:bg-[#ccff00]/30 selection:text-[#ccff00] overflow-x-hidden">
-      {/* Dynamic Realistic Padel Ball (bounces bottom-to-top on scroll) */}
+    <div className="min-h-screen bg-[#06100E] text-[#F1F5F3] font-sans selection:bg-[#00D084]/30 selection:text-[#4ADE80] overflow-x-hidden">
       <BouncingPadelBall />
 
       {/* Main Navbar */}
-      <header className="border-b border-slate-800/80 bg-[#070a0e]/90 backdrop-blur-md sticky top-0 z-40 px-4 sm:px-8 py-3.5">
+      <header className="border-b border-[#0C1517] bg-[#06100E]/95 backdrop-blur-md sticky top-0 z-40 px-4 sm:px-8 py-3.5">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           {/* Brand Logo */}
           <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="h-9 w-9 rounded-xl bg-[#ccff00]/10 border border-[#ccff00]/30 flex items-center justify-center text-[#ccff00] shadow-lg shadow-[#ccff00]/10 group-hover:scale-105 transition">
+            <div className="h-9 w-9 rounded-xl bg-[#00D084]/10 border border-[#00D084]/30 flex items-center justify-center text-[#00D084] shadow-lg shadow-[#00D084]/10 group-hover:scale-105 transition">
               <Trophy className="h-5 w-5" />
             </div>
             <div>
               <div className="flex items-center gap-1.5">
-                <span className="font-extrabold text-base sm:text-lg text-white tracking-tight">
-                  Pádel<span className="text-[#ccff00]">Hub</span>
+                <span className="font-extrabold text-base sm:text-lg text-[#F1F5F3] tracking-tight">
+                  Pádel<span className="text-[#00D084]">Hub</span>
                 </span>
-                <span className="text-[10px] bg-[#ccff00]/10 text-[#ccff00] border border-[#ccff00]/30 px-1.5 py-0.2 rounded font-semibold">
+                <span className="text-[10px] bg-[#00D084]/10 text-[#4ADE80] border border-[#00D084]/30 px-1.5 py-0.2 rounded font-semibold">
                   PRO
                 </span>
               </div>
@@ -269,21 +255,21 @@ export default function Home() {
           </Link>
 
           {/* Desktop Nav Links */}
-          <nav className="hidden md:flex items-center gap-8 text-xs font-medium text-slate-300">
-            <a href="#funcionalidades" className="hover:text-[#ccff00] transition flex items-center gap-1.5">
-              <span className="h-1.5 w-1.5 rounded-full bg-[#ccff00]"></span>
+          <nav className="hidden md:flex items-center gap-8 text-xs font-medium text-[#8A9B95]">
+            <a href="#funcionalidades" className="hover:text-[#4ADE80] transition flex items-center gap-1.5">
+              <span className="h-1.5 w-1.5 rounded-full bg-[#00D084]"></span>
               Funcionalidades
             </a>
-            <a href="#beneficios" className="hover:text-[#ccff00] transition">
+            <a href="#beneficios" className="hover:text-[#4ADE80] transition">
               Beneficios
             </a>
-            <a href="#precios" className="hover:text-[#ccff00] transition">
+            <a href="#precios" className="hover:text-[#4ADE80] transition">
               Precios
             </a>
-            <a href="#como-funciona" className="hover:text-[#ccff00] transition">
+            <a href="#como-funciona" className="hover:text-[#4ADE80] transition">
               Cómo funciona
             </a>
-            <a href="#faq" className="hover:text-[#ccff00] transition">
+            <a href="#faq" className="hover:text-[#4ADE80] transition">
               Preguntas
             </a>
           </nav>
@@ -292,14 +278,14 @@ export default function Home() {
           <div className="flex items-center gap-3">
             <Link
               href="/reserve"
-              className="hidden sm:flex items-center gap-1.5 text-xs font-medium text-slate-300 hover:text-white px-3 py-1.5 rounded-xl hover:bg-slate-800/60 transition"
+              className="hidden sm:flex items-center gap-1.5 text-xs font-medium text-[#8A9B95] hover:text-[#F1F5F3] px-3 py-1.5 rounded-xl hover:bg-[#0C1517] transition"
             >
               <span>Ver Demo</span>
             </Link>
 
             <Link
               href="/login"
-              className="flex items-center gap-1.5 bg-[#ccff00]/10 hover:bg-[#ccff00]/20 text-[#ccff00] border border-[#ccff00]/40 hover:border-[#ccff00] px-4 py-2 rounded-xl text-xs font-bold transition shadow-sm hover:shadow-[#ccff00]/10"
+              className="flex items-center gap-1.5 bg-[#00D084] hover:bg-[#4ADE80] text-[#06100E] px-4 py-2 rounded-xl text-xs font-bold transition shadow-sm hover:shadow-[#00D084]/20"
             >
               <span>Ingresar</span>
               <ArrowRight className="h-3.5 w-3.5" />
@@ -308,57 +294,136 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Hero Section */}
-      <section className="relative overflow-hidden pt-16 pb-20 px-4 sm:px-6">
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-[#ccff00]/10 rounded-full blur-[140px] pointer-events-none -z-10" />
+      {/* Hero Section with Dashboard Preview */}
+      <section className="relative overflow-hidden pt-12 pb-20 px-4 sm:px-6">
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-[#00D084]/10 rounded-full blur-[140px] pointer-events-none -z-10" />
 
-        <div className="max-w-4xl mx-auto text-center space-y-6">
-          <h1 className="text-3xl sm:text-5xl md:text-6xl font-black text-white tracking-tight leading-[1.15]">
-            Automatizá tus turnos, cobrá señas y <span className="text-transparent bg-clip-text bg-gradient-to-r from-lime-300 via-[#ccff00] to-emerald-400">llená tus canchas.</span>
-          </h1>
+        <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
+          {/* Left Column: Copy & Actions */}
+          <div className="lg:col-span-6 space-y-6 text-left">
+            <h1 className="text-3xl sm:text-5xl font-black text-[#F1F5F3] tracking-tight leading-[1.15]">
+              Automatizá tus turnos, cobrá señas y <span className="text-[#00D084]">llená tus canchas.</span>
+            </h1>
 
-          <p className="text-slate-300 max-w-2xl mx-auto text-sm sm:text-base leading-relaxed">
-            Grilla en tiempo real, cobro de señas con Mercado Pago, web oficial personalizada y bot de WhatsApp con Inteligencia Artificial.
-          </p>
+            <p className="text-[#8A9B95] max-w-xl text-sm sm:text-base leading-relaxed">
+              Gestioná tu complejo de pádel de forma simple, rápida y profesional. Con la tecnología que necesitás.
+            </p>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
-            <a
-              href={whatsappLink}
-              target="_blank"
-              rel="noreferrer"
-              className="w-full sm:w-auto flex items-center justify-center gap-2 bg-[#ccff00] hover:bg-[#bbf000] text-slate-950 font-black px-7 py-3.5 rounded-2xl text-xs sm:text-sm transition shadow-xl shadow-[#ccff00]/20 hover:scale-105"
-            >
-              <MessageCircle className="h-4 w-4" />
-              <span>Solicitar Demo por WhatsApp</span>
-            </a>
+            <div className="flex flex-col sm:flex-row items-center gap-3 pt-2">
+              <a
+                href={whatsappLink}
+                target="_blank"
+                rel="noreferrer"
+                className="w-full sm:w-auto flex items-center justify-center gap-2 bg-[#00D084] hover:bg-[#4ADE80] text-[#06100E] font-extrabold px-6 py-3.5 rounded-2xl text-xs sm:text-sm transition shadow-xl shadow-[#00D084]/20 hover:scale-105"
+              >
+                <MessageCircle className="h-4 w-4" />
+                <span>Solicitar Demo por WhatsApp</span>
+              </a>
 
-            <Link
-              href="/clubs/smash-padel-colon"
-              className="w-full sm:w-auto flex items-center justify-center gap-2 bg-slate-900/80 hover:bg-slate-800 text-white font-semibold px-6 py-3.5 rounded-2xl text-xs sm:text-sm border border-slate-800 hover:border-[#ccff00]/40 transition"
-            >
-              <span>Ver Web de Reservas en Vivo</span>
-              <ArrowRight className="h-4 w-4 text-[#ccff00]" />
-            </Link>
+              <Link
+                href="/clubs/smash-padel-colon"
+                className="w-full sm:w-auto flex items-center justify-center gap-2 bg-[#0C1517] hover:bg-[#121f22] text-[#F1F5F3] font-semibold px-6 py-3.5 rounded-2xl text-xs sm:text-sm border border-[#00D084]/30 hover:border-[#00D084] transition"
+              >
+                <span>Ver Web de Reservas en Vivo</span>
+                <ArrowRight className="h-4 w-4 text-[#00D084]" />
+              </Link>
+            </div>
+
+            {/* Social Proof Stats */}
+            <div className="pt-6 grid grid-cols-2 sm:grid-cols-4 gap-3 border-t border-[#0C1517] text-left">
+              <div className="p-3 bg-[#0C1517] border border-[#00D084]/20 rounded-xl">
+                <div className="text-lg font-black text-[#00D084]">100%</div>
+                <div className="text-[11px] text-[#8A9B95]">Señas aseguradas</div>
+              </div>
+              <div className="p-3 bg-[#0C1517] border border-[#00D084]/20 rounded-xl">
+                <div className="text-lg font-black text-[#F1F5F3]">0</div>
+                <div className="text-[11px] text-[#8A9B95]">Turnos duplicados</div>
+              </div>
+              <div className="p-3 bg-[#0C1517] border border-[#00D084]/20 rounded-xl">
+                <div className="text-lg font-black text-[#00D084]">24/7</div>
+                <div className="text-[11px] text-[#8A9B95]">Reservas activas</div>
+              </div>
+              <div className="p-3 bg-[#0C1517] border border-[#00D084]/20 rounded-xl">
+                <div className="text-lg font-black text-[#F1F5F3]">$15.000</div>
+                <div className="text-[11px] text-[#8A9B95]">Por cancha al mes</div>
+              </div>
+            </div>
           </div>
 
-          {/* Social Proof Stats */}
-          <div className="pt-8 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto border-t border-slate-800/60 text-left">
-            <div className="p-3 bg-slate-900/40 border border-slate-800/40 rounded-xl">
-              <div className="text-lg sm:text-xl font-extrabold text-[#ccff00]">100%</div>
-              <div className="text-[11px] text-slate-400">Señas aseguradas</div>
-            </div>
-            <div className="p-3 bg-slate-900/40 border border-slate-800/40 rounded-xl">
-              <div className="text-lg sm:text-xl font-extrabold text-white">0</div>
-              <div className="text-[11px] text-slate-400">Turnos duplicados</div>
-            </div>
-            <div className="p-3 bg-slate-900/40 border border-slate-800/40 rounded-xl">
-              <div className="text-lg sm:text-xl font-extrabold text-[#ccff00]">24/7</div>
-              <div className="text-[11px] text-slate-400">Reservas automáticas</div>
-            </div>
-            <div className="p-3 bg-slate-900/40 border border-slate-800/40 rounded-xl">
-              <div className="text-lg sm:text-xl font-extrabold text-white">$15.000</div>
-              <div className="text-[11px] text-slate-400">Por cancha al mes</div>
-            </div>
+          {/* Right Column: High-End Live Dashboard Preview Mockup */}
+          <div className="lg:col-span-6 flex justify-center">
+            <ScrollReveal direction="right" delay={100}>
+              <div className="w-full max-w-[520px] bg-[#0C1517] border border-[#00D084]/30 rounded-3xl p-5 shadow-2xl space-y-4 relative overflow-hidden group hover:border-[#00D084]/60 transition duration-300">
+                {/* Dashboard Topbar */}
+                <div className="flex items-center justify-between border-b border-[#121f22] pb-3">
+                  <div className="flex items-center gap-2">
+                    <div className="h-7 w-7 rounded-lg bg-[#00D084]/15 border border-[#00D084]/40 flex items-center justify-center text-[#00D084]">
+                      <Trophy className="h-4 w-4" />
+                    </div>
+                    <span className="text-xs font-extrabold text-[#F1F5F3]">PádelHub Admin</span>
+                  </div>
+                  <div className="text-[11px] text-[#8A9B95] font-medium flex items-center gap-1.5">
+                    <span className="h-2 w-2 rounded-full bg-[#00D084] animate-pulse"></span>
+                    <span>Hoy, en vivo</span>
+                  </div>
+                </div>
+
+                {/* Dashboard Metric Badges */}
+                <div className="grid grid-cols-4 gap-2 text-center text-xs">
+                  <div className="bg-[#06100E] border border-[#121f22] p-2.5 rounded-xl">
+                    <div className="font-extrabold text-[#00D084] text-sm sm:text-base">$482.500</div>
+                    <div className="text-[9px] text-[#8A9B95]">Ingresos</div>
+                  </div>
+                  <div className="bg-[#06100E] border border-[#121f22] p-2.5 rounded-xl">
+                    <div className="font-extrabold text-[#F1F5F3] text-sm sm:text-base">38</div>
+                    <div className="text-[9px] text-[#8A9B95]">Turnos</div>
+                  </div>
+                  <div className="bg-[#06100E] border border-[#121f22] p-2.5 rounded-xl">
+                    <div className="font-extrabold text-[#4ADE80] text-sm sm:text-base">24</div>
+                    <div className="text-[9px] text-[#8A9B95]">Señas MP</div>
+                  </div>
+                  <div className="bg-[#06100E] border border-[#121f22] p-2.5 rounded-xl">
+                    <div className="font-extrabold text-[#F1F5F3] text-sm sm:text-base">12</div>
+                    <div className="text-[9px] text-[#8A9B95]">Fijos</div>
+                  </div>
+                </div>
+
+                {/* Live Courts Slots Preview */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[10px]">
+                  {/* Cancha 1 */}
+                  <div className="bg-[#06100E] border border-[#121f22] p-2.5 rounded-xl space-y-1.5">
+                    <div className="font-bold text-[#F1F5F3] text-[11px] border-b border-[#121f22] pb-1">Cancha 1</div>
+                    <div className="bg-[#00D084]/15 text-[#4ADE80] border border-[#00D084]/30 px-1.5 py-1 rounded font-bold">17:00 • Ocupado</div>
+                    <div className="bg-[#0C1517] text-[#8A9B95] border border-dashed border-[#121f22] px-1.5 py-1 rounded text-center">+ 18:30 Libre</div>
+                    <div className="bg-[#00D084]/15 text-[#4ADE80] border border-[#00D084]/30 px-1.5 py-1 rounded font-bold">20:00 • Ocupado</div>
+                  </div>
+
+                  {/* Cancha 2 */}
+                  <div className="bg-[#06100E] border border-[#121f22] p-2.5 rounded-xl space-y-1.5">
+                    <div className="font-bold text-[#F1F5F3] text-[11px] border-b border-[#121f22] pb-1">Cancha 2</div>
+                    <div className="bg-[#0C1517] text-[#8A9B95] border border-dashed border-[#121f22] px-1.5 py-1 rounded text-center">+ 17:00 Libre</div>
+                    <div className="bg-[#00D084]/15 text-[#4ADE80] border border-[#00D084]/30 px-1.5 py-1 rounded font-bold">18:30 • Ocupado</div>
+                    <div className="bg-[#00D084]/15 text-[#4ADE80] border border-[#00D084]/30 px-1.5 py-1 rounded font-bold">20:00 • Ocupado</div>
+                  </div>
+
+                  {/* Cancha 3 */}
+                  <div className="bg-[#06100E] border border-[#121f22] p-2.5 rounded-xl space-y-1.5">
+                    <div className="font-bold text-[#F1F5F3] text-[11px] border-b border-[#121f22] pb-1">Cancha 3</div>
+                    <div className="bg-[#00D084]/15 text-[#4ADE80] border border-[#00D084]/30 px-1.5 py-1 rounded font-bold">17:00 • Ocupado</div>
+                    <div className="bg-[#00D084]/15 text-[#4ADE80] border border-[#00D084]/30 px-1.5 py-1 rounded font-bold">18:30 • Ocupado</div>
+                    <div className="bg-[#0C1517] text-[#8A9B95] border border-dashed border-[#121f22] px-1.5 py-1 rounded text-center">+ 20:00 Libre</div>
+                  </div>
+
+                  {/* Cancha 4 */}
+                  <div className="bg-[#06100E] border border-[#121f22] p-2.5 rounded-xl space-y-1.5">
+                    <div className="font-bold text-[#F1F5F3] text-[11px] border-b border-[#121f22] pb-1">Cancha 4</div>
+                    <div className="bg-[#00D084]/15 text-[#4ADE80] border border-[#00D084]/30 px-1.5 py-1 rounded font-bold">17:00 • Ocupado</div>
+                    <div className="bg-[#0C1517] text-[#8A9B95] border border-dashed border-[#121f22] px-1.5 py-1 rounded text-center">+ 18:30 Libre</div>
+                    <div className="bg-[#00D084]/15 text-[#4ADE80] border border-[#00D084]/30 px-1.5 py-1 rounded font-bold">20:00 • Ocupado</div>
+                  </div>
+                </div>
+              </div>
+            </ScrollReveal>
           </div>
         </div>
       </section>
@@ -368,24 +433,24 @@ export default function Home() {
         <div className="max-w-5xl mx-auto space-y-10">
           <ScrollReveal direction="up">
             <div className="text-center space-y-2">
-              <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
+              <h2 className="text-2xl sm:text-4xl font-extrabold text-[#F1F5F3] tracking-tight">
                 Todo lo que tu complejo necesita
               </h2>
-              <p className="text-slate-400 text-xs sm:text-sm">
+              <p className="text-[#8A9B95] text-xs sm:text-sm">
                 Sin complicaciones. Tecnología simple para llenar tus canchas.
               </p>
             </div>
           </ScrollReveal>
 
-          {/* Minimalist High-Tech Feature Grid (Specific concepts only) */}
+          {/* Minimalist 4 Feature Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* Feature 1 */}
             <ScrollReveal direction="left" delay={100}>
-              <div className="h-full bg-gradient-to-b from-[#0f1722] to-[#0a0f16] border border-slate-800/90 hover:border-[#ccff00]/50 p-6 rounded-3xl flex flex-col items-center text-center justify-center space-y-3 shadow-xl hover:shadow-[#ccff00]/10 transition duration-300 group">
-                <div className="h-14 w-14 rounded-2xl bg-[#ccff00]/10 border border-[#ccff00]/30 flex items-center justify-center text-[#ccff00] group-hover:scale-110 group-hover:bg-[#ccff00]/20 transition">
+              <div className="h-full bg-[#0C1517] border border-[#121f22] hover:border-[#00D084]/50 p-6 rounded-3xl flex flex-col items-center text-center justify-center space-y-3 shadow-xl hover:shadow-[#00D084]/10 transition duration-300 group">
+                <div className="h-14 w-14 rounded-2xl bg-[#00D084]/10 border border-[#00D084]/30 flex items-center justify-center text-[#00D084] group-hover:scale-110 group-hover:bg-[#00D084]/20 transition">
                   <CreditCard className="h-7 w-7" />
                 </div>
-                <h3 className="font-extrabold text-base sm:text-lg text-white group-hover:text-[#ccff00] transition">
+                <h3 className="font-extrabold text-base sm:text-lg text-[#F1F5F3] group-hover:text-[#4ADE80] transition">
                   Cobro de señas automático
                 </h3>
               </div>
@@ -393,11 +458,11 @@ export default function Home() {
 
             {/* Feature 2 */}
             <ScrollReveal direction="up" delay={150}>
-              <div className="h-full bg-gradient-to-b from-[#0f1722] to-[#0a0f16] border border-slate-800/90 hover:border-[#ccff00]/50 p-6 rounded-3xl flex flex-col items-center text-center justify-center space-y-3 shadow-xl hover:shadow-[#ccff00]/10 transition duration-300 group">
-                <div className="h-14 w-14 rounded-2xl bg-[#ccff00]/10 border border-[#ccff00]/30 flex items-center justify-center text-[#ccff00] group-hover:scale-110 group-hover:bg-[#ccff00]/20 transition">
+              <div className="h-full bg-[#0C1517] border border-[#121f22] hover:border-[#00D084]/50 p-6 rounded-3xl flex flex-col items-center text-center justify-center space-y-3 shadow-xl hover:shadow-[#00D084]/10 transition duration-300 group">
+                <div className="h-14 w-14 rounded-2xl bg-[#00D084]/10 border border-[#00D084]/30 flex items-center justify-center text-[#00D084] group-hover:scale-110 group-hover:bg-[#00D084]/20 transition">
                   <MessageCircle className="h-7 w-7" />
                 </div>
-                <h3 className="font-extrabold text-base sm:text-lg text-white group-hover:text-[#ccff00] transition">
+                <h3 className="font-extrabold text-base sm:text-lg text-[#F1F5F3] group-hover:text-[#4ADE80] transition">
                   Bot de WhatsApp con IA
                 </h3>
               </div>
@@ -405,11 +470,11 @@ export default function Home() {
 
             {/* Feature 3 */}
             <ScrollReveal direction="up" delay={200}>
-              <div className="h-full bg-gradient-to-b from-[#0f1722] to-[#0a0f16] border border-slate-800/90 hover:border-[#ccff00]/50 p-6 rounded-3xl flex flex-col items-center text-center justify-center space-y-3 shadow-xl hover:shadow-[#ccff00]/10 transition duration-300 group">
-                <div className="h-14 w-14 rounded-2xl bg-[#ccff00]/10 border border-[#ccff00]/30 flex items-center justify-center text-[#ccff00] group-hover:scale-110 group-hover:bg-[#ccff00]/20 transition">
+              <div className="h-full bg-[#0C1517] border border-[#121f22] hover:border-[#00D084]/50 p-6 rounded-3xl flex flex-col items-center text-center justify-center space-y-3 shadow-xl hover:shadow-[#00D084]/10 transition duration-300 group">
+                <div className="h-14 w-14 rounded-2xl bg-[#00D084]/10 border border-[#00D084]/30 flex items-center justify-center text-[#00D084] group-hover:scale-110 group-hover:bg-[#00D084]/20 transition">
                   <Sliders className="h-7 w-7" />
                 </div>
-                <h3 className="font-extrabold text-base sm:text-lg text-white group-hover:text-[#ccff00] transition">
+                <h3 className="font-extrabold text-base sm:text-lg text-[#F1F5F3] group-hover:text-[#4ADE80] transition">
                   Tarifas personalizables
                 </h3>
               </div>
@@ -417,11 +482,11 @@ export default function Home() {
 
             {/* Feature 4 */}
             <ScrollReveal direction="right" delay={250}>
-              <div className="h-full bg-gradient-to-b from-[#0f1722] to-[#0a0f16] border border-slate-800/90 hover:border-[#ccff00]/50 p-6 rounded-3xl flex flex-col items-center text-center justify-center space-y-3 shadow-xl hover:shadow-[#ccff00]/10 transition duration-300 group">
-                <div className="h-14 w-14 rounded-2xl bg-[#ccff00]/10 border border-[#ccff00]/30 flex items-center justify-center text-[#ccff00] group-hover:scale-110 group-hover:bg-[#ccff00]/20 transition">
+              <div className="h-full bg-[#0C1517] border border-[#121f22] hover:border-[#00D084]/50 p-6 rounded-3xl flex flex-col items-center text-center justify-center space-y-3 shadow-xl hover:shadow-[#00D084]/10 transition duration-300 group">
+                <div className="h-14 w-14 rounded-2xl bg-[#00D084]/10 border border-[#00D084]/30 flex items-center justify-center text-[#00D084] group-hover:scale-110 group-hover:bg-[#00D084]/20 transition">
                   <Smartphone className="h-7 w-7" />
                 </div>
-                <h3 className="font-extrabold text-base sm:text-lg text-white group-hover:text-[#ccff00] transition">
+                <h3 className="font-extrabold text-base sm:text-lg text-[#F1F5F3] group-hover:text-[#4ADE80] transition">
                   Web oficial en tu bio
                 </h3>
               </div>
@@ -431,14 +496,14 @@ export default function Home() {
       </section>
 
       {/* Beneficios para tu predio Section */}
-      <section id="beneficios" className="py-20 px-4 sm:px-6 bg-[#0a0f15] border-y border-slate-800/80 relative overflow-hidden">
+      <section id="beneficios" className="py-20 px-4 sm:px-6 bg-[#0C1517]/40 border-y border-[#0C1517] relative overflow-hidden">
         <div className="max-w-6xl mx-auto space-y-12">
           <ScrollReveal direction="up">
             <div className="text-center space-y-2">
-              <h2 className="text-3xl sm:text-5xl font-black text-white tracking-tight uppercase">
-                Beneficios para <span className="text-transparent bg-clip-text bg-gradient-to-r from-lime-300 via-[#ccff00] to-emerald-400">tu Predio</span>
+              <h2 className="text-3xl sm:text-5xl font-black text-[#F1F5F3] tracking-tight uppercase">
+                Beneficios para <span className="text-[#00D084]">tu Predio</span>
               </h2>
-              <p className="text-slate-400 text-xs sm:text-sm max-w-xl mx-auto">
+              <p className="text-[#8A9B95] text-xs sm:text-sm max-w-xl mx-auto">
                 Diseñado para reducir tu carga de trabajo y asegurar la recaudación de cada turno.
               </p>
             </div>
@@ -482,10 +547,10 @@ export default function Home() {
                       </div>
                       <span className="text-xs font-bold text-white">¡Pago Acreditado!</span>
                     </div>
-                    <div className="bg-slate-950/80 p-2.5 rounded-xl border border-slate-800 text-[11px]">
-                      <div className="text-slate-400">Seña Turno Pádel:</div>
-                      <div className="text-base font-black text-[#ccff00]">$8.000 ARS</div>
-                      <div className="text-[9px] text-emerald-400 font-semibold mt-0.5">En tu cuenta al instante</div>
+                    <div className="bg-[#06100E] p-2.5 rounded-xl border border-[#121f22] text-[11px]">
+                      <div className="text-[#8A9B95]">Seña Turno Pádel:</div>
+                      <div className="text-base font-black text-[#00D084]">$8.000 ARS</div>
+                      <div className="text-[9px] text-[#4ADE80] font-semibold mt-0.5">En tu cuenta al instante</div>
                     </div>
                   </div>
                 </div>
@@ -517,15 +582,15 @@ export default function Home() {
                 },
               ].map((b, i) => (
                 <ScrollReveal key={i} direction="up" delay={i * 80}>
-                  <div className="flex items-start gap-3.5 p-4 rounded-2xl bg-[#0f1722]/80 border border-slate-800/80 hover:border-[#ccff00]/40 transition group">
-                    <div className="h-7 w-7 rounded-xl bg-[#ccff00]/10 border border-[#ccff00]/40 flex items-center justify-center text-[#ccff00] flex-shrink-0 mt-0.5 group-hover:scale-110 group-hover:bg-[#ccff00] group-hover:text-slate-950 transition">
+                  <div className="flex items-start gap-3.5 p-4 rounded-2xl bg-[#0C1517] border border-[#121f22] hover:border-[#00D084]/40 transition group">
+                    <div className="h-7 w-7 rounded-xl bg-[#00D084]/10 border border-[#00D084]/40 flex items-center justify-center text-[#00D084] flex-shrink-0 mt-0.5 group-hover:scale-110 group-hover:bg-[#00D084] group-hover:text-[#06100E] transition">
                       <Check className="h-4 w-4" />
                     </div>
                     <div>
-                      <h4 className="text-sm font-bold text-white group-hover:text-[#ccff00] transition">
+                      <h4 className="text-sm font-bold text-[#F1F5F3] group-hover:text-[#4ADE80] transition">
                         {b.title}
                       </h4>
-                      <p className="text-xs text-slate-400 mt-0.5 leading-relaxed">
+                      <p className="text-xs text-[#8A9B95] mt-0.5 leading-relaxed">
                         {b.desc}
                       </p>
                     </div>
@@ -542,10 +607,10 @@ export default function Home() {
         <div className="max-w-4xl mx-auto space-y-12">
           <ScrollReveal direction="up">
             <div className="text-center space-y-2">
-              <h2 className="text-3xl sm:text-5xl font-black text-white tracking-tight uppercase">
-                Precios y <span className="text-transparent bg-clip-text bg-gradient-to-r from-lime-300 via-[#ccff00] to-emerald-400">Aranceles</span>
+              <h2 className="text-3xl sm:text-5xl font-black text-[#F1F5F3] tracking-tight uppercase">
+                Precios y <span className="text-[#00D084]">Aranceles</span>
               </h2>
-              <p className="text-xs sm:text-sm text-slate-400 max-w-xl mx-auto">
+              <p className="text-xs sm:text-sm text-[#8A9B95] max-w-xl mx-auto">
                 Abono mensual fijo por cancha. Sin comisiones por reserva ni costos ocultos.
               </p>
             </div>
@@ -553,38 +618,38 @@ export default function Home() {
 
           {/* Unified High-End Padel Pricing Card */}
           <ScrollReveal direction="scale" delay={100}>
-            <div className="bg-[#0f1722] border-2 border-slate-800 hover:border-[#ccff00]/60 rounded-3xl overflow-hidden shadow-2xl transition duration-300">
+            <div className="bg-[#0C1517] border-2 border-[#121f22] hover:border-[#00D084]/60 rounded-3xl overflow-hidden shadow-2xl transition duration-300">
               <div className="grid grid-cols-1 md:grid-cols-12 items-stretch">
                 {/* Visual Image Banner */}
-                <div className="md:col-span-5 relative min-h-[220px] md:min-h-full bg-gradient-to-t from-[#0f1722] via-[#0f1722]/40 to-transparent overflow-hidden">
+                <div className="md:col-span-5 relative min-h-[220px] md:min-h-full bg-gradient-to-t from-[#0C1517] via-[#0C1517]/40 to-transparent overflow-hidden">
                   <img
                     src="https://images.unsplash.com/photo-1554068865-24cecd4e34b8?auto=format&fit=crop&w=800&q=80"
                     alt="Cancha de Pádel"
                     className="w-full h-full object-cover opacity-85"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#0f1722] via-transparent to-transparent md:bg-gradient-to-r md:from-transparent md:to-[#0f1722]" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#0C1517] via-transparent to-transparent md:bg-gradient-to-r md:from-transparent md:to-[#0C1517]" />
                 </div>
 
                 {/* Pricing Details & Calculator */}
                 <div className="md:col-span-7 p-6 sm:p-8 space-y-6 flex flex-col justify-between">
                   <div>
-                    <span className="text-[11px] font-bold text-slate-400 tracking-wider uppercase">
+                    <span className="text-[11px] font-bold text-[#8A9B95] tracking-wider uppercase">
                       Plan Completo para Complejos de Pádel
                     </span>
                     <div className="flex items-baseline gap-2 mt-1">
-                      <span className="text-4xl sm:text-5xl font-black text-white tracking-tight">
+                      <span className="text-4xl sm:text-5xl font-black text-[#F1F5F3] tracking-tight">
                         ${totalPrice.toLocaleString()}
                       </span>
-                      <span className="text-xs font-bold text-[#ccff00]">ARS / mes</span>
+                      <span className="text-xs font-bold text-[#00D084]">ARS / mes</span>
                     </div>
-                    <p className="text-xs text-slate-400 mt-0.5">
-                      Equivale a <strong className="text-white">${pricePerCourt.toLocaleString()}</strong> por cancha por mes.
+                    <p className="text-xs text-[#8A9B95] mt-0.5">
+                      Equivale a <strong className="text-[#F1F5F3]">${pricePerCourt.toLocaleString()}</strong> por cancha por mes.
                     </p>
                   </div>
 
                   {/* Number of Courts Selector */}
                   <div className="space-y-2">
-                    <label className="text-xs font-bold text-slate-300 block">
+                    <label className="text-xs font-bold text-[#8A9B95] block">
                       ¿Cuántas canchas tiene tu complejo?
                     </label>
                     <div className="flex items-center gap-2">
@@ -594,8 +659,8 @@ export default function Home() {
                           onClick={() => setCourtsCount(num)}
                           className={`h-10 w-10 rounded-xl text-xs font-extrabold transition border ${
                             courtsCount === num
-                              ? "bg-[#ccff00] text-slate-950 border-[#ccff00] shadow-lg shadow-[#ccff00]/20 scale-105"
-                              : "bg-slate-900 text-slate-300 border-slate-800 hover:border-slate-700"
+                              ? "bg-[#00D084] text-[#06100E] border-[#00D084] shadow-lg shadow-[#00D084]/20 scale-105"
+                              : "bg-[#06100E] text-[#8A9B95] border-[#121f22] hover:border-[#00D084]/40 hover:text-[#F1F5F3]"
                           }`}
                         >
                           {num}
@@ -605,22 +670,22 @@ export default function Home() {
                   </div>
 
                   {/* Features List */}
-                  <div className="space-y-2 text-xs text-slate-300 border-t border-slate-800 pt-4">
+                  <div className="space-y-2 text-xs text-[#8A9B95] border-t border-[#121f22] pt-4">
                     <div className="flex items-center gap-2">
-                      <Check className="h-4 w-4 text-[#ccff00] flex-shrink-0" />
-                      <span>Grilla de turnos casuales y fijos semanales</span>
+                      <Check className="h-4 w-4 text-[#00D084] flex-shrink-0" />
+                      <span className="text-[#F1F5F3]">Grilla de turnos casuales y fijos semanales</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Check className="h-4 w-4 text-[#ccff00] flex-shrink-0" />
-                      <span>Cobro de señas automático con Mercado Pago</span>
+                      <Check className="h-4 w-4 text-[#00D084] flex-shrink-0" />
+                      <span className="text-[#F1F5F3]">Cobro de señas automático con Mercado Pago</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Check className="h-4 w-4 text-[#ccff00] flex-shrink-0" />
-                      <span>Bot de WhatsApp con Inteligencia Artificial</span>
+                      <Check className="h-4 w-4 text-[#00D084] flex-shrink-0" />
+                      <span className="text-[#F1F5F3]">Bot de WhatsApp con Inteligencia Artificial</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Check className="h-4 w-4 text-[#ccff00] flex-shrink-0" />
-                      <span>Web oficial personalizada en tu Instagram</span>
+                      <Check className="h-4 w-4 text-[#00D084] flex-shrink-0" />
+                      <span className="text-[#F1F5F3]">Web oficial personalizada en tu Instagram</span>
                     </div>
                   </div>
 
@@ -628,7 +693,7 @@ export default function Home() {
                     href={whatsappLink}
                     target="_blank"
                     rel="noreferrer"
-                    className="w-full flex items-center justify-center gap-2 bg-[#ccff00] hover:bg-[#bbf000] text-slate-950 font-black py-3.5 rounded-xl text-xs sm:text-sm transition shadow-lg shadow-[#ccff00]/20 hover:scale-[1.02]"
+                    className="w-full flex items-center justify-center gap-2 bg-[#00D084] hover:bg-[#4ADE80] text-[#06100E] font-black py-3.5 rounded-xl text-xs sm:text-sm transition shadow-lg shadow-[#00D084]/20 hover:scale-[1.02]"
                   >
                     <MessageCircle className="h-4 w-4" />
                     <span>Empezar con {courtsCount} {courtsCount === 1 ? "Cancha" : "Canchas"}</span>
@@ -641,14 +706,14 @@ export default function Home() {
       </section>
 
       {/* How It Works */}
-      <section id="como-funciona" className="py-16 px-4 sm:px-6 bg-[#0a0f15] border-t border-slate-800/80">
+      <section id="como-funciona" className="py-16 px-4 sm:px-6 bg-[#0C1517]/40 border-t border-[#0C1517]">
         <div className="max-w-5xl mx-auto space-y-12">
           <ScrollReveal direction="up">
             <div className="text-center space-y-2">
-              <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
+              <h2 className="text-2xl sm:text-4xl font-extrabold text-[#F1F5F3] tracking-tight">
                 Cómo funciona en 3 simples pasos
               </h2>
-              <p className="text-slate-400 text-xs sm:text-sm">
+              <p className="text-[#8A9B95] text-xs sm:text-sm">
                 Tu complejo funcionando en piloto automático desde el primer día.
               </p>
             </div>
@@ -656,36 +721,36 @@ export default function Home() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <ScrollReveal direction="left" delay={100}>
-              <div className="h-full bg-[#0f1722] border border-slate-800 p-6 rounded-3xl space-y-3 text-left shadow-lg">
-                <div className="h-8 w-8 rounded-xl bg-[#ccff00]/10 text-[#ccff00] font-black flex items-center justify-center text-sm border border-[#ccff00]/30">
+              <div className="h-full bg-[#0C1517] border border-[#121f22] p-6 rounded-3xl space-y-3 text-left shadow-lg">
+                <div className="h-8 w-8 rounded-xl bg-[#00D084]/10 text-[#00D084] font-black flex items-center justify-center text-sm border border-[#00D084]/30">
                   1
                 </div>
-                <h3 className="font-extrabold text-base text-white">Configurás tu complejo</h3>
-                <p className="text-xs text-slate-400 leading-relaxed">
+                <h3 className="font-extrabold text-base text-[#F1F5F3]">Configurás tu complejo</h3>
+                <p className="text-xs text-[#8A9B95] leading-relaxed">
                   Ingresás tus canchas, horarios de apertura y montos de seña en el panel.
                 </p>
               </div>
             </ScrollReveal>
 
             <ScrollReveal direction="up" delay={200}>
-              <div className="h-full bg-[#0f1722] border border-slate-800 p-6 rounded-3xl space-y-3 text-left shadow-lg">
-                <div className="h-8 w-8 rounded-xl bg-[#ccff00]/10 text-[#ccff00] font-black flex items-center justify-center text-sm border border-[#ccff00]/30">
+              <div className="h-full bg-[#0C1517] border border-[#121f22] p-6 rounded-3xl space-y-3 text-left shadow-lg">
+                <div className="h-8 w-8 rounded-xl bg-[#00D084]/10 text-[#00D084] font-black flex items-center justify-center text-sm border border-[#00D084]/30">
                   2
                 </div>
-                <h3 className="font-extrabold text-base text-white">Compartís tu Link Oficial</h3>
-                <p className="text-xs text-slate-400 leading-relaxed">
+                <h3 className="font-extrabold text-base text-[#F1F5F3]">Compartís tu Link Oficial</h3>
+                <p className="text-xs text-[#8A9B95] leading-relaxed">
                   Pegás el link en tu Instagram y WhatsApp. Tus clientes reservan desde el celular.
                 </p>
               </div>
             </ScrollReveal>
 
             <ScrollReveal direction="right" delay={300}>
-              <div className="h-full bg-[#0f1722] border border-slate-800 p-6 rounded-3xl space-y-3 text-left shadow-lg">
-                <div className="h-8 w-8 rounded-xl bg-[#ccff00]/10 text-[#ccff00] font-black flex items-center justify-center text-sm border border-[#ccff00]/30">
+              <div className="h-full bg-[#0C1517] border border-[#121f22] p-6 rounded-3xl space-y-3 text-left shadow-lg">
+                <div className="h-8 w-8 rounded-xl bg-[#00D084]/10 text-[#00D084] font-black flex items-center justify-center text-sm border border-[#00D084]/30">
                   3
                 </div>
-                <h3 className="font-extrabold text-base text-white">Recibís reservas y señas</h3>
-                <p className="text-xs text-slate-400 leading-relaxed">
+                <h3 className="font-extrabold text-base text-[#F1F5F3]">Recibís reservas y señas</h3>
+                <p className="text-xs text-[#8A9B95] leading-relaxed">
                   La seña se acredita en tu Mercado Pago y el turno se bloquea automáticamente.
                 </p>
               </div>
@@ -695,14 +760,14 @@ export default function Home() {
       </section>
 
       {/* FAQ Accordion Section */}
-      <section id="faq" className="py-16 px-4 sm:px-6 border-t border-slate-800/80">
+      <section id="faq" className="py-16 px-4 sm:px-6 border-t border-[#0C1517]">
         <div className="max-w-3xl mx-auto space-y-8">
           <ScrollReveal direction="up">
             <div className="text-center space-y-2">
-              <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-[#F1F5F3] tracking-tight">
                 Preguntas Frecuentes
               </h2>
-              <p className="text-slate-400 text-xs sm:text-sm">
+              <p className="text-[#8A9B95] text-xs sm:text-sm">
                 Resolvemos tus dudas sobre la plataforma y el funcionamiento.
               </p>
             </div>
@@ -730,18 +795,18 @@ export default function Home() {
               <ScrollReveal key={idx} direction="up" delay={idx * 75}>
                 <div
                   onClick={() => toggleFaq(idx)}
-                  className="bg-[#0f1722] border border-slate-800 rounded-2xl p-4.5 cursor-pointer hover:border-slate-700 transition space-y-2"
+                  className="bg-[#0C1517] border border-[#121f22] rounded-2xl p-4.5 cursor-pointer hover:border-[#00D084]/40 transition space-y-2"
                 >
-                  <div className="flex justify-between items-center text-xs sm:text-sm font-bold text-white">
+                  <div className="flex justify-between items-center text-xs sm:text-sm font-bold text-[#F1F5F3]">
                     <span>{faq.q}</span>
                     <ChevronRight
-                      className={`h-4 w-4 text-slate-400 transition-transform ${
-                        openFaq === idx ? "rotate-90 text-[#ccff00]" : ""
+                      className={`h-4 w-4 text-[#8A9B95] transition-transform ${
+                        openFaq === idx ? "rotate-90 text-[#00D084]" : ""
                       }`}
                     />
                   </div>
                   {openFaq === idx && (
-                    <p className="text-xs text-slate-400 pt-1 leading-relaxed border-t border-slate-800/60 mt-2">
+                    <p className="text-xs text-[#8A9B95] pt-1 leading-relaxed border-t border-[#121f22] mt-2">
                       {faq.a}
                     </p>
                   )}
@@ -753,30 +818,30 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-slate-800 bg-[#070a0e] px-6 py-10 text-slate-400 text-xs">
+      <footer className="border-t border-[#0C1517] bg-[#06100E] px-6 py-10 text-[#8A9B95] text-xs">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-2">
-            <div className="h-7 w-7 rounded-lg bg-[#ccff00]/10 border border-[#ccff00]/30 flex items-center justify-center text-[#ccff00] font-bold">
+            <div className="h-7 w-7 rounded-lg bg-[#00D084]/10 border border-[#00D084]/30 flex items-center justify-center text-[#00D084] font-bold">
               <Trophy className="h-4 w-4" />
             </div>
-            <span className="font-extrabold text-white text-sm">PádelHub</span>
-            <span className="text-slate-600">|</span>
+            <span className="font-extrabold text-[#F1F5F3] text-sm">PádelHub</span>
+            <span className="text-[#121f22]">|</span>
             <span>Software de Gestión & Reservas</span>
           </div>
 
-          <div className="flex items-center gap-6 text-slate-400">
-            <Link href="/login" className="hover:text-[#ccff00] transition">
+          <div className="flex items-center gap-6 text-[#8A9B95]">
+            <Link href="/login" className="hover:text-[#4ADE80] transition">
               Acceso Dueños
             </Link>
-            <Link href="/reserve" className="hover:text-[#ccff00] transition">
+            <Link href="/reserve" className="hover:text-[#4ADE80] transition">
               Web de Reservas
             </Link>
-            <a href={whatsappLink} target="_blank" rel="noreferrer" className="text-[#ccff00] hover:underline">
+            <a href={whatsappLink} target="_blank" rel="noreferrer" className="text-[#00D084] hover:underline">
               Soporte WhatsApp
             </a>
           </div>
 
-          <div className="text-slate-500 text-[11px]">
+          <div className="text-[#8A9B95] text-[11px]">
             © 2026 PádelHub. Todos los derechos reservados.
           </div>
         </div>
@@ -784,3 +849,4 @@ export default function Home() {
     </div>
   );
 }
+

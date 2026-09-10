@@ -339,14 +339,14 @@ export default function DynamicClubBookingPage() {
   const clubPhoneClean = (club?.phone || "+54 9 343 555-1234").replace(/[^0-9]/g, "");
 
   return (
-    <div className="min-h-screen bg-[#0d1217] text-slate-100 font-sans pb-16">
+    <div className="min-h-screen bg-[#06100E] text-[#F1F5F3] font-sans pb-16">
       {/* Top Navbar */}
-      <header className="px-6 py-4 max-w-6xl mx-auto flex items-center justify-between border-b border-slate-800/40">
+      <header className="px-6 py-4 max-w-6xl mx-auto flex items-center justify-between border-b border-[#16272a]">
         <div className="flex items-center gap-2.5">
-          <div className="h-8 w-8 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 font-bold shadow-lg shadow-emerald-500/10">
+          <div className="h-8 w-8 rounded-xl bg-[#00D084]/10 border border-[#00D084]/30 flex items-center justify-center text-[#00D084] font-bold shadow-lg shadow-[#00D084]/10">
             <Trophy className="h-4 w-4" />
           </div>
-          <span className="font-extrabold text-base tracking-tight text-white">
+          <span className="font-extrabold text-base tracking-tight text-[#F1F5F3]">
             Pádel Hub
           </span>
         </div>
@@ -355,7 +355,7 @@ export default function DynamicClubBookingPage() {
           href={`https://wa.me/${clubPhoneClean}?text=Hola!%20Quería%20consultar%20por%20un%20turno%20en%20${encodeURIComponent(clubDisplayName)}`}
           target="_blank"
           rel="noreferrer"
-          className="flex items-center gap-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition"
+          className="flex items-center gap-1.5 bg-[#00D084]/10 hover:bg-[#00D084]/20 text-[#00D084] border border-[#00D084]/30 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition"
         >
           <MessageCircle className="h-3.5 w-3.5" />
           <span>WhatsApp Club</span>
@@ -364,26 +364,26 @@ export default function DynamicClubBookingPage() {
 
       {/* Hero Header Banner */}
       <div className="max-w-6xl mx-auto px-4 sm:px-6 my-6">
-        <div className="relative rounded-3xl overflow-hidden h-44 sm:h-52 bg-gradient-to-r from-emerald-950/80 via-slate-900 to-slate-950 border border-emerald-500/20 shadow-2xl flex items-end p-6 sm:p-8">
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0d1217] via-transparent to-transparent" />
+        <div className="relative rounded-3xl overflow-hidden h-44 sm:h-52 bg-gradient-to-r from-[#00D084]/20 via-[#0C1517] to-[#06100E] border border-[#00D084]/20 shadow-2xl flex items-end p-6 sm:p-8">
+          <div className="absolute inset-0 bg-gradient-to-t from-[#06100E] via-transparent to-transparent" />
 
           {/* Club Identity */}
           <div className="relative z-10 flex items-center gap-4 sm:gap-6">
-            <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-2xl bg-slate-900 border-2 border-emerald-500/40 flex items-center justify-center p-2 shadow-2xl flex-shrink-0 text-emerald-400 font-extrabold text-xl sm:text-2xl">
+            <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-2xl bg-[#0C1517] border-2 border-[#00D084]/40 flex items-center justify-center p-2 shadow-2xl flex-shrink-0 text-[#00D084] font-extrabold text-xl sm:text-2xl">
               {clubDisplayName.substring(0, 2).toUpperCase()}
             </div>
 
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+                <h1 className="text-2xl sm:text-3xl font-extrabold text-[#F1F5F3] tracking-tight">
                   {clubDisplayName}
                 </h1>
-                <span className="text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded-full font-semibold">
+                <span className="text-[10px] bg-[#00D084]/20 text-[#00D084] border border-[#00D084]/30 px-2 py-0.5 rounded-full font-semibold">
                   Oficial
                 </span>
               </div>
-              <p className="text-xs sm:text-sm text-slate-400 font-medium mt-0.5 flex items-center gap-1">
-                <MapPin className="h-3.5 w-3.5 text-slate-500" /> {clubDisplayCity}
+              <p className="text-xs sm:text-sm text-[#8A9B95] font-medium mt-0.5 flex items-center gap-1">
+                <MapPin className="h-3.5 w-3.5 text-[#8A9B95]" /> {clubDisplayCity}
               </p>
             </div>
           </div>
@@ -393,26 +393,26 @@ export default function DynamicClubBookingPage() {
       {/* Main Layout: 2 Columns */}
       <main className="max-w-6xl mx-auto px-4 sm:px-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column: Turnos Disponibles */}
-        <div className="lg:col-span-2 bg-[#131b22] border border-slate-800/80 rounded-3xl p-6 sm:p-8 space-y-6 shadow-xl">
+        <div className="lg:col-span-2 bg-[#0C1517] border border-[#16272a] rounded-3xl p-6 sm:p-8 space-y-6 shadow-xl">
           <div className="flex justify-between items-center">
-            <h2 className="text-lg font-extrabold text-white tracking-tight">
+            <h2 className="text-lg font-extrabold text-[#F1F5F3] tracking-tight">
               Reserva de turnos
             </h2>
-            <span className="text-xs text-slate-400">
+            <span className="text-xs text-[#8A9B95]">
               {availableSlotGroups.length} {availableSlotGroups.length === 1 ? "horario libre" : "horarios libres"}
             </span>
           </div>
 
           {/* Date Selector Navigation Bar */}
           <div className="space-y-3 pt-1">
-            <div className="flex items-center justify-center gap-6 text-white font-bold text-base select-none">
+            <div className="flex items-center justify-center gap-6 text-[#F1F5F3] font-bold text-base select-none">
               <button
                 onClick={handlePrevDay}
                 disabled={selectedDateIso <= todayIso}
                 className={`p-1.5 rounded-lg transition ${
                   selectedDateIso <= todayIso
-                    ? "opacity-30 cursor-not-allowed text-slate-600"
-                    : "hover:bg-slate-800 text-slate-400 hover:text-white"
+                    ? "opacity-30 cursor-not-allowed text-[#8A9B95]/40"
+                    : "hover:bg-[#16272a] text-[#8A9B95] hover:text-[#F1F5F3]"
                 }`}
                 title={selectedDateIso <= todayIso ? "No podés retroceder a días pasados" : "Día anterior"}
               >
@@ -425,14 +425,14 @@ export default function DynamicClubBookingPage() {
 
               <button
                 onClick={handleNextDay}
-                className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition"
+                className="p-1.5 rounded-lg hover:bg-[#16272a] text-[#8A9B95] hover:text-[#F1F5F3] transition"
                 title="Día siguiente"
               >
                 <ChevronRight className="h-5 w-5" />
               </button>
             </div>
 
-            <div className="flex items-center justify-between text-xs text-slate-400 border-b border-slate-800/80 pb-3 font-medium">
+            <div className="flex items-center justify-between text-xs text-[#8A9B95] border-b border-[#16272a] pb-3 font-medium">
               <span className="capitalize">{dayNameLower}</span>
               <span>{fullDateDisplay}</span>
             </div>
@@ -445,15 +445,15 @@ export default function DynamicClubBookingPage() {
                 <button
                   key={group.id}
                   onClick={() => handleSelectSlot(group)}
-                  className="w-full flex items-center justify-between px-4 py-3.5 rounded-2xl bg-[#0e141a] hover:bg-slate-800/60 border border-slate-800/60 hover:border-emerald-500/40 transition group text-left shadow-sm"
+                  className="w-full flex items-center justify-between px-4 py-3.5 rounded-2xl bg-[#06100E] hover:bg-[#101f21] border border-[#16272a] hover:border-[#00D084]/40 transition group text-left shadow-sm"
                 >
                   <div className="flex items-center gap-3">
-                    <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400/80 group-hover:scale-125 transition" />
-                    <div className="text-xs sm:text-sm font-semibold text-white flex items-center flex-wrap gap-1.5">
-                      <span className="font-bold text-emerald-300">{group.startTime} hs</span>
-                      <span className="text-slate-400 font-normal">| Turno disponible</span>
+                    <span className="h-2 w-2 rounded-full bg-[#00D084] shadow-sm shadow-[#00D084]/80 group-hover:scale-125 transition" />
+                    <div className="text-xs sm:text-sm font-semibold text-[#F1F5F3] flex items-center flex-wrap gap-1.5">
+                      <span className="font-bold text-[#00D084]">{group.startTime} hs</span>
+                      <span className="text-[#8A9B95] font-normal">| Turno disponible</span>
                       {activeCourts.length > 1 && (
-                        <span className="text-[11px] text-emerald-400/90 font-medium bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                        <span className="text-[11px] text-[#00D084] font-medium bg-[#00D084]/10 px-2 py-0.5 rounded-full border border-[#00D084]/20">
                           {group.availableCourts.length} {group.availableCourts.length === 1 ? "cancha libre" : "canchas libres"}
                         </span>
                       )}
@@ -461,16 +461,16 @@ export default function DynamicClubBookingPage() {
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-semibold text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-xl border border-emerald-500/20 group-hover:bg-emerald-500 group-hover:text-slate-950 transition">
+                    <span className="text-xs font-semibold text-[#00D084] bg-[#00D084]/10 px-3 py-1 rounded-xl border border-[#00D084]/20 group-hover:bg-[#00D084] group-hover:text-[#06100E] transition font-bold">
                       Reservar (Seña ${group.deposit.toLocaleString()})
                     </span>
                   </div>
                 </button>
               ))
             ) : (
-              <div className="py-12 text-center text-slate-500 text-xs space-y-1">
-                <Lock className="h-6 w-6 text-slate-600 mx-auto mb-2" />
-                <p className="font-semibold text-slate-400">No hay turnos disponibles para este día</p>
+              <div className="py-12 text-center text-[#8A9B95] text-xs space-y-1">
+                <Lock className="h-6 w-6 text-[#8A9B95]/50 mx-auto mb-2" />
+                <p className="font-semibold text-[#8A9B95]">No hay turnos disponibles para este día</p>
                 <p>Navegá hacia otros días con las flechas superiores.</p>
               </div>
             )}
@@ -478,44 +478,44 @@ export default function DynamicClubBookingPage() {
         </div>
 
         {/* Right Column: Información Card */}
-        <div className="bg-[#131b22] border border-slate-800/80 rounded-3xl p-6 sm:p-8 space-y-6 shadow-xl h-fit">
+        <div className="bg-[#0C1517] border border-[#16272a] rounded-3xl p-6 sm:p-8 space-y-6 shadow-xl h-fit">
           <div className="space-y-1">
-            <h3 className="text-base font-extrabold text-white tracking-tight">
+            <h3 className="text-base font-extrabold text-[#F1F5F3] tracking-tight">
               Información del Complejo
             </h3>
-            <p className="text-xs text-slate-400 font-medium">
+            <p className="text-xs text-[#8A9B95] font-medium">
               {clubDisplayName}
             </p>
           </div>
 
-          <div className="space-y-4 text-xs text-slate-300 pt-2">
+          <div className="space-y-4 text-xs text-[#8A9B95] pt-2">
             <div className="flex items-start gap-3">
-              <MapPin className="h-4 w-4 text-slate-400 flex-shrink-0 mt-0.5" />
+              <MapPin className="h-4 w-4 text-[#8A9B95] flex-shrink-0 mt-0.5" />
               <div className="space-y-0.5">
-                <p className="text-slate-200 font-medium leading-relaxed">
+                <p className="text-[#F1F5F3] font-medium leading-relaxed">
                   {clubDisplayCity}, Argentina
                 </p>
               </div>
             </div>
 
             <div className="flex items-center gap-3">
-              <Phone className="h-4 w-4 text-slate-400 flex-shrink-0" />
+              <Phone className="h-4 w-4 text-[#8A9B95] flex-shrink-0" />
               <a
                 href={`https://wa.me/${clubPhoneClean}?text=Hola!%20Quería%20consultar%20por%20un%20turno%20en%20${encodeURIComponent(clubDisplayName)}`}
                 target="_blank"
                 rel="noreferrer"
-                className="text-emerald-400 hover:underline font-semibold flex items-center gap-1.5"
+                className="text-[#00D084] hover:underline font-semibold flex items-center gap-1.5"
               >
                 <span>{club?.phone || "+54 9 343 555-1234"}</span>
-                <MessageCircle className="h-3.5 w-3.5 text-emerald-400" />
+                <MessageCircle className="h-3.5 w-3.5 text-[#00D084]" />
               </a>
             </div>
 
-            <div className="flex items-center gap-3 pt-2 border-t border-slate-800/60">
-              <div className="h-4 w-4 flex items-center justify-center text-slate-400 text-xs">
+            <div className="flex items-center gap-3 pt-2 border-t border-[#16272a]">
+              <div className="h-4 w-4 flex items-center justify-center text-[#8A9B95] text-xs">
                 🎾
               </div>
-              <span className="text-slate-200 font-medium">Pádel ({activeCourts.length} Pistas)</span>
+              <span className="text-[#F1F5F3] font-medium">Pádel ({activeCourts.length} Pistas)</span>
             </div>
           </div>
         </div>
@@ -524,17 +524,17 @@ export default function DynamicClubBookingPage() {
       {/* Clean Reservation Modal */}
       {isCheckoutOpen && selectedSlotGroup && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-[#131b22] border border-slate-800 rounded-3xl w-full max-w-lg p-6 sm:p-8 space-y-5 shadow-2xl my-8">
+          <div className="bg-[#0C1517] border border-[#16272a] rounded-3xl w-full max-w-lg p-6 sm:p-8 space-y-5 shadow-2xl my-8">
             {checkoutStep === "form" && (
               <>
-                <div className="flex justify-between items-center border-b border-slate-800 pb-3">
+                <div className="flex justify-between items-center border-b border-[#16272a] pb-3">
                   <div>
-                    <h3 className="font-extrabold text-white text-base">Nueva reserva</h3>
-                    <p className="text-xs text-slate-400">{clubDisplayName}</p>
+                    <h3 className="font-extrabold text-[#F1F5F3] text-base">Nueva reserva</h3>
+                    <p className="text-xs text-[#8A9B95]">{clubDisplayName}</p>
                   </div>
                   <button
                     onClick={() => setIsCheckoutOpen(false)}
-                    className="p-1.5 rounded-lg text-slate-400 hover:text-white transition"
+                    className="p-1.5 rounded-lg text-[#8A9B95] hover:text-[#F1F5F3] transition"
                   >
                     ✕
                   </button>
@@ -544,34 +544,34 @@ export default function DynamicClubBookingPage() {
                   {/* Nombre y Apellido */}
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1">
-                      <label className="text-xs text-slate-300 font-medium">Nombre</label>
+                      <label className="text-xs text-[#8A9B95] font-medium">Nombre</label>
                       <input
                         required
                         type="text"
                         placeholder="Nombre"
                         value={playerForm.firstName}
                         onChange={(e) => setPlayerForm({ ...playerForm, firstName: e.target.value })}
-                        className="w-full bg-[#0e141a] border border-slate-800 focus:border-emerald-500/50 rounded-xl px-3 py-2.5 text-xs text-white placeholder-slate-600 outline-none"
+                        className="w-full bg-[#06100E] border border-[#16272a] focus:border-[#00D084]/50 rounded-xl px-3 py-2.5 text-xs text-[#F1F5F3] placeholder-[#8A9B95]/50 outline-none"
                       />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-xs text-slate-300 font-medium">Apellido</label>
+                      <label className="text-xs text-[#8A9B95] font-medium">Apellido</label>
                       <input
                         required
                         type="text"
                         placeholder="Apellido"
                         value={playerForm.lastName}
                         onChange={(e) => setPlayerForm({ ...playerForm, lastName: e.target.value })}
-                        className="w-full bg-[#0e141a] border border-slate-800 focus:border-emerald-500/50 rounded-xl px-3 py-2.5 text-xs text-white placeholder-slate-600 outline-none"
+                        className="w-full bg-[#06100E] border border-[#16272a] focus:border-[#00D084]/50 rounded-xl px-3 py-2.5 text-xs text-[#F1F5F3] placeholder-[#8A9B95]/50 outline-none"
                       />
                     </div>
                   </div>
 
                   {/* Teléfono / WhatsApp */}
                   <div className="space-y-1">
-                    <label className="text-xs text-slate-300 font-medium">Teléfono (WhatsApp)</label>
+                    <label className="text-xs text-[#8A9B95] font-medium">Teléfono (WhatsApp)</label>
                     <div className="grid grid-cols-3 gap-2">
-                      <div className="bg-[#0e141a] border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-300 flex items-center justify-center font-medium">
+                      <div className="bg-[#06100E] border border-[#16272a] rounded-xl px-3 py-2 text-xs text-[#8A9B95] flex items-center justify-center font-medium">
                         AR +54
                       </div>
                       <input
@@ -580,45 +580,45 @@ export default function DynamicClubBookingPage() {
                         placeholder="343 510 0200"
                         value={playerForm.phone}
                         onChange={(e) => setPlayerForm({ ...playerForm, phone: e.target.value })}
-                        className="col-span-2 w-full bg-[#0e141a] border border-slate-800 focus:border-emerald-500/50 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-600 outline-none"
+                        className="col-span-2 w-full bg-[#06100E] border border-[#16272a] focus:border-[#00D084]/50 rounded-xl px-3 py-2 text-xs text-[#F1F5F3] placeholder-[#8A9B95]/50 outline-none"
                       />
                     </div>
-                    <p className="text-[10px] text-slate-500 mt-0.5">
+                    <p className="text-[10px] text-[#8A9B95] mt-0.5">
                       Se debe eliminar el prefijo 0 en el código de área y el prefijo 15 en el teléfono. Ej: 358 510 0200
                     </p>
                   </div>
 
                   {/* Email (opcional / de contacto) */}
                   <div className="space-y-1">
-                    <label className="text-xs text-slate-300 font-medium">Email (opcional)</label>
+                    <label className="text-xs text-[#8A9B95] font-medium">Email (opcional)</label>
                     <input
                       type="email"
                       placeholder="usuario@ejemplo.com"
                       value={playerForm.email}
                       onChange={(e) => setPlayerForm({ ...playerForm, email: e.target.value })}
-                      className="w-full bg-[#0e141a] border border-slate-800 focus:border-emerald-500/50 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-600 outline-none"
+                      className="w-full bg-[#06100E] border border-[#16272a] focus:border-[#00D084]/50 rounded-xl px-3 py-2 text-xs text-[#F1F5F3] placeholder-[#8A9B95]/50 outline-none"
                     />
                   </div>
 
                   {/* Duración del turno */}
                   <div className="space-y-1">
-                    <label className="text-xs text-slate-300 font-medium">Duración de turno</label>
-                    <div className="w-full bg-[#0e141a] border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-slate-200 font-medium flex items-center justify-between">
+                    <label className="text-xs text-[#8A9B95] font-medium">Duración de turno</label>
+                    <div className="w-full bg-[#06100E] border border-[#16272a] rounded-xl px-3 py-2.5 text-xs text-[#F1F5F3] font-medium flex items-center justify-between">
                       <span>90 Minutos</span>
-                      <span className="text-slate-500 text-[11px]">Estándar</span>
+                      <span className="text-[#8A9B95] text-[11px]">Estándar</span>
                     </div>
                   </div>
 
                   {/* Selector de Cancha disponible */}
                   <div className="space-y-1">
-                    <label className="text-xs text-slate-300 font-medium">Cancha</label>
+                    <label className="text-xs text-[#8A9B95] font-medium">Cancha</label>
                     <select
                       value={selectedCourtId}
                       onChange={(e) => setSelectedCourtId(e.target.value)}
-                      className="w-full bg-[#0e141a] border border-slate-800 focus:border-emerald-500/50 rounded-xl px-3 py-2.5 text-xs text-white outline-none cursor-pointer"
+                      className="w-full bg-[#06100E] border border-[#16272a] focus:border-[#00D084]/50 rounded-xl px-3 py-2.5 text-xs text-[#F1F5F3] outline-none cursor-pointer"
                     >
                       {selectedSlotGroup.availableCourts.map((court) => (
-                        <option key={court.id} value={court.id} className="bg-[#131b22] text-white">
+                        <option key={court.id} value={court.id} className="bg-[#0C1517] text-[#F1F5F3]">
                           {court.name} {court.surface ? `(${court.surface})` : ""}
                         </option>
                       ))}
@@ -626,26 +626,26 @@ export default function DynamicClubBookingPage() {
                   </div>
 
                   {/* Resumen del Turno */}
-                  <div className="bg-[#0e141a] border border-slate-800/80 rounded-2xl p-4 text-xs space-y-2">
+                  <div className="bg-[#06100E] border border-[#16272a] rounded-2xl p-4 text-xs space-y-2">
                     <div className="flex justify-between items-center">
-                      <span className="text-slate-400">Inicia:</span>
-                      <span className="font-semibold text-white capitalize">
+                      <span className="text-[#8A9B95]">Inicia:</span>
+                      <span className="font-semibold text-[#F1F5F3] capitalize">
                         {shortDateDisplay} {selectedSlotGroup.timeSlot.split(" - ")[0]} hs
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-slate-400">Termina:</span>
-                      <span className="text-slate-300 font-medium">
+                      <span className="text-[#8A9B95]">Termina:</span>
+                      <span className="text-[#F1F5F3] font-medium">
                         {selectedSlotGroup.timeSlot.split(" - ")[1]} hs
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-slate-400">Precio Total:</span>
-                      <span className="text-slate-200 font-bold">${selectedSlotGroup.price.toLocaleString()}</span>
+                      <span className="text-[#8A9B95]">Precio Total:</span>
+                      <span className="text-[#F1F5F3] font-bold">${selectedSlotGroup.price.toLocaleString()}</span>
                     </div>
-                    <div className="flex justify-between items-center border-t border-slate-800/80 pt-2">
-                      <span className="text-slate-300 font-medium">Seña MercadoPago:</span>
-                      <span className="font-extrabold text-emerald-400 text-sm">
+                    <div className="flex justify-between items-center border-t border-[#16272a] pt-2">
+                      <span className="text-[#8A9B95] font-medium">Seña MercadoPago:</span>
+                      <span className="font-extrabold text-[#00D084] text-sm">
                         ${selectedSlotGroup.deposit.toLocaleString()}
                       </span>
                     </div>
@@ -656,13 +656,13 @@ export default function DynamicClubBookingPage() {
                     <button
                       type="button"
                       onClick={() => setIsCheckoutOpen(false)}
-                      className="px-4 py-2.5 rounded-xl text-xs text-slate-400 hover:text-white transition"
+                      className="px-4 py-2.5 rounded-xl text-xs text-[#8A9B95] hover:text-[#F1F5F3] transition"
                     >
                       Cancelar
                     </button>
                     <button
                       type="submit"
-                      className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold px-6 py-2.5 rounded-xl text-xs transition shadow-lg shadow-emerald-500/20"
+                      className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-[#00D084] hover:bg-[#4ADE80] text-[#06100E] font-extrabold px-6 py-2.5 rounded-xl text-xs transition shadow-lg shadow-[#00D084]/20"
                     >
                       <CreditCard className="h-4 w-4" />
                       <span>Reservar (Pagar Seña ${selectedSlotGroup.deposit.toLocaleString()})</span>
@@ -674,24 +674,24 @@ export default function DynamicClubBookingPage() {
 
             {checkoutStep === "mercadopago" && (
               <div className="py-12 text-center space-y-4">
-                <div className="h-12 w-12 rounded-full border-4 border-emerald-500/20 border-t-emerald-500 animate-spin mx-auto" />
-                <h4 className="text-base font-bold text-white">Conectando con MercadoPago...</h4>
-                <p className="text-xs text-slate-400">Procesando pago de seña para {clubDisplayName}</p>
+                <div className="h-12 w-12 rounded-full border-4 border-[#00D084]/20 border-t-[#00D084] animate-spin mx-auto" />
+                <h4 className="text-base font-bold text-[#F1F5F3]">Conectando con MercadoPago...</h4>
+                <p className="text-xs text-[#8A9B95]">Procesando pago de seña para {clubDisplayName}</p>
               </div>
             )}
 
             {checkoutStep === "success" && (
               <div className="text-center space-y-4 py-4">
-                <div className="h-14 w-14 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 mx-auto">
+                <div className="h-14 w-14 rounded-full bg-[#00D084]/10 border border-[#00D084]/30 flex items-center justify-center text-[#00D084] mx-auto">
                   <CheckCircle2 className="h-8 w-8" />
                 </div>
                 <div>
-                  <h4 className="text-xl font-extrabold text-white">¡Reserva Confirmada!</h4>
-                  <p className="text-xs text-slate-400 mt-1">Registrada con éxito en {clubDisplayName}</p>
+                  <h4 className="text-xl font-extrabold text-[#F1F5F3]">¡Reserva Confirmada!</h4>
+                  <p className="text-xs text-[#8A9B95] mt-1">Registrada con éxito en {clubDisplayName}</p>
                 </div>
                 <button
                   onClick={() => setIsCheckoutOpen(false)}
-                  className="w-full bg-slate-800 hover:bg-slate-700 text-white font-semibold py-2.5 rounded-xl text-xs transition"
+                  className="w-full bg-[#16272a] hover:bg-[#1f373b] text-[#F1F5F3] font-semibold py-2.5 rounded-xl text-xs transition"
                 >
                   Cerrar
                 </button>

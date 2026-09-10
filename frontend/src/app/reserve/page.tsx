@@ -34,23 +34,23 @@ export default function ReserveIndexPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 font-sans p-6">
-      <header className="max-w-4xl mx-auto flex items-center justify-between pb-8 border-b border-slate-800">
+    <div className="min-h-screen bg-[#06100E] text-[#F1F5F3] font-sans p-6">
+      <header className="max-w-4xl mx-auto flex items-center justify-between pb-8 border-b border-[#16272a]">
         <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+          <div className="h-10 w-10 rounded-xl bg-[#00D084]/10 border border-[#00D084]/30 flex items-center justify-center text-[#00D084]">
             <Trophy className="h-5 w-5" />
           </div>
           <div>
-            <h1 className="font-bold text-lg text-white">Reserva tu Turno de Pádel</h1>
-            <p className="text-xs text-slate-400">Seleccioná tu complejo para ver disponibilidad en vivo</p>
+            <h1 className="font-bold text-lg text-[#F1F5F3]">Reserva tu Turno de Pádel</h1>
+            <p className="text-xs text-[#8A9B95]">Seleccioná tu complejo para ver disponibilidad en vivo</p>
           </div>
         </div>
       </header>
 
       <main className="max-w-4xl mx-auto py-8 space-y-6">
         <div className="space-y-2">
-          <h2 className="text-base font-bold text-white">Complejos Disponibles</h2>
-          <p className="text-xs text-slate-400">Elegí el club donde querés jugar hoy:</p>
+          <h2 className="text-base font-bold text-[#F1F5F3]">Complejos Disponibles</h2>
+          <p className="text-xs text-[#8A9B95]">Elegí el club donde querés jugar hoy:</p>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -58,23 +58,23 @@ export default function ReserveIndexPage() {
             <Link
               key={club.id}
               href={`/clubs/${club.slug || "latoska-er"}`}
-              className="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 hover:border-emerald-500/50 transition group flex flex-col justify-between space-y-4 shadow-xl"
+              className="p-5 rounded-2xl bg-[#0C1517] border border-[#16272a] hover:border-[#00D084]/50 transition group flex flex-col justify-between space-y-4 shadow-xl"
             >
               <div className="space-y-1.5">
                 <div className="flex justify-between items-start">
-                  <h3 className="font-bold text-base text-white group-hover:text-emerald-400 transition">
+                  <h3 className="font-bold text-base text-[#F1F5F3] group-hover:text-[#00D084] transition">
                     {club.name}
                   </h3>
-                  <span className="text-[10px] bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full font-semibold">
+                  <span className="text-[10px] bg-[#00D084]/10 border border-[#00D084]/20 text-[#00D084] px-2 py-0.5 rounded-full font-semibold">
                     {club.max_courts || 4} Pistas
                   </span>
                 </div>
-                <div className="text-xs text-slate-400 flex items-center gap-1">
-                  <MapPin className="h-3.5 w-3.5 text-slate-500" /> {club.city || "Argentina"}
+                <div className="text-xs text-[#8A9B95] flex items-center gap-1">
+                  <MapPin className="h-3.5 w-3.5 text-[#8A9B95]" /> {club.city || "Argentina"}
                 </div>
               </div>
 
-              <div className="pt-3 border-t border-slate-800/80 flex justify-between items-center text-xs font-semibold text-emerald-400">
+              <div className="pt-3 border-t border-[#16272a] flex justify-between items-center text-xs font-semibold text-[#00D084]">
                 <span>Ver turnos y reservar</span>
                 <ChevronRight className="h-4 w-4 group-hover:translate-x-1 transition" />
               </div>
