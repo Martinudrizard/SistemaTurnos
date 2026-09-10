@@ -5,17 +5,20 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const connectionString = process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/padel_db';
+const isInternalRailway = connectionString.includes('railway.internal');
+const isRemoteWithSsl =
+  Boolean(process.env.DATABASE_URL) &&
+  !isInternalRailway &&
+  !connectionString.includes('localhost') &&
+  !connectionString.includes('127.0.0.1');
 
 export const pgPool = new Pool({
   connectionString,
-  ssl:
-    process.env.DATABASE_URL && !process.env.DATABASE_URL.includes('localhost') && !process.env.DATABASE_URL.includes('127.0.0.1')
-      ? { rejectUnauthorized: false }
-      : undefined,
+  ssl: isRemoteWithSsl ? { rejectUnauthorized: false } : undefined,
 });
 
 pgPool.on('error', (err) => {
-  console.warn('⚠️ PostgreSQL Pool Error (non-fatal):', err.message);
+  console.warn('⚠️ PostgreSQL Pool Error:', err.message);
 });
 
 export const initDb = async () => {
