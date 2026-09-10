@@ -248,12 +248,6 @@ export default function Home() {
       {/* Dynamic Realistic Padel Ball (bounces bottom-to-top on scroll) */}
       <BouncingPadelBall />
 
-      {/* Top Announcement Bar */}
-      <div className="bg-gradient-to-r from-lime-950 via-slate-900 to-lime-950 border-b border-[#ccff00]/20 py-2 px-4 text-center text-xs font-semibold text-[#ccff00] flex items-center justify-center gap-2">
-        <Sparkles className="h-3.5 w-3.5 text-[#ccff00] animate-pulse" />
-        <span>¡Lanzamiento 2026! Automatizá tu complejo de pádel y cobrá señas 100% online.</span>
-      </div>
-
       {/* Main Navbar */}
       <header className="border-b border-slate-800/80 bg-[#070a0e]/90 backdrop-blur-md sticky top-0 z-40 px-4 sm:px-8 py-3.5">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
@@ -315,15 +309,10 @@ export default function Home() {
       </header>
 
       {/* Hero Section */}
-      <section className="relative overflow-hidden pt-12 pb-20 px-4 sm:px-6">
+      <section className="relative overflow-hidden pt-16 pb-20 px-4 sm:px-6">
         <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-[#ccff00]/10 rounded-full blur-[140px] pointer-events-none -z-10" />
 
         <div className="max-w-4xl mx-auto text-center space-y-6">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#ccff00]/10 border border-[#ccff00]/30 text-[#ccff00] text-xs font-semibold shadow-inner">
-            <Zap className="h-3.5 w-3.5 text-[#ccff00]" />
-            <span>El software definitivo para canchas y clubes de pádel</span>
-          </div>
-
           <h1 className="text-3xl sm:text-5xl md:text-6xl font-black text-white tracking-tight leading-[1.15]">
             Automatizá tus turnos, cobrá señas y <span className="text-transparent bg-clip-text bg-gradient-to-r from-lime-300 via-[#ccff00] to-emerald-400">llená tus canchas.</span>
           </h1>
@@ -441,15 +430,11 @@ export default function Home() {
         </div>
       </section>
 
-      {/* NEW: Beneficios para tu predio Section (Inspired by Image 2) */}
+      {/* Beneficios para tu predio Section */}
       <section id="beneficios" className="py-20 px-4 sm:px-6 bg-[#0a0f15] border-y border-slate-800/80 relative overflow-hidden">
         <div className="max-w-6xl mx-auto space-y-12">
           <ScrollReveal direction="up">
             <div className="text-center space-y-2">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#ccff00]/10 border border-[#ccff00]/30 text-[#ccff00] text-xs font-bold">
-                <ShieldCheck className="h-3.5 w-3.5 text-[#ccff00]" />
-                <span>Impacto Directo en tu Negocio</span>
-              </div>
               <h2 className="text-3xl sm:text-5xl font-black text-white tracking-tight uppercase">
                 Beneficios para <span className="text-transparent bg-clip-text bg-gradient-to-r from-lime-300 via-[#ccff00] to-emerald-400">tu Predio</span>
               </h2>
@@ -552,61 +537,74 @@ export default function Home() {
         </div>
       </section>
 
-      {/* NEW: Precios y Aranceles Section (Inspired by Image 4) */}
+      {/* Precios y Aranceles Section */}
       <section id="precios" className="py-20 px-4 sm:px-6 relative">
-        <div className="max-w-6xl mx-auto space-y-12">
+        <div className="max-w-4xl mx-auto space-y-12">
           <ScrollReveal direction="up">
             <div className="text-center space-y-2">
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#ccff00]/10 border border-[#ccff00]/30 text-[#ccff00] text-xs font-bold">
-                <span>Tarifa Plana & Sin Comisiones</span>
-              </div>
               <h2 className="text-3xl sm:text-5xl font-black text-white tracking-tight uppercase">
                 Precios y <span className="text-transparent bg-clip-text bg-gradient-to-r from-lime-300 via-[#ccff00] to-emerald-400">Aranceles</span>
               </h2>
               <p className="text-xs sm:text-sm text-slate-400 max-w-xl mx-auto">
-                Abono mensual fijo por cancha. Sin costos por reserva, sin contratos de permanencia.
+                Abono mensual fijo por cancha. Sin comisiones por reserva ni costos ocultos.
               </p>
             </div>
           </ScrollReveal>
 
-          {/* 2 Photographic Cards (Image 4 Style) */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-            {/* Card 1: Predios de Pádel */}
-            <ScrollReveal direction="left" delay={100}>
-              <div className="bg-[#0f1722] border-2 border-slate-800 hover:border-[#ccff00]/60 rounded-3xl overflow-hidden shadow-2xl transition duration-300 group flex flex-col justify-between">
-                {/* Visual Header */}
-                <div className="relative h-48 sm:h-52 w-full bg-gradient-to-t from-[#0f1722] via-[#0f1722]/50 to-transparent overflow-hidden">
+          {/* Unified High-End Padel Pricing Card */}
+          <ScrollReveal direction="scale" delay={100}>
+            <div className="bg-[#0f1722] border-2 border-slate-800 hover:border-[#ccff00]/60 rounded-3xl overflow-hidden shadow-2xl transition duration-300">
+              <div className="grid grid-cols-1 md:grid-cols-12 items-stretch">
+                {/* Visual Image Banner */}
+                <div className="md:col-span-5 relative min-h-[220px] md:min-h-full bg-gradient-to-t from-[#0f1722] via-[#0f1722]/40 to-transparent overflow-hidden">
                   <img
                     src="https://images.unsplash.com/photo-1554068865-24cecd4e34b8?auto=format&fit=crop&w=800&q=80"
                     alt="Cancha de Pádel"
-                    className="w-full h-full object-cover group-hover:scale-105 transition duration-500 opacity-80"
+                    className="w-full h-full object-cover opacity-85"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#0f1722] via-[#0f1722]/40 to-transparent" />
-                  <div className="absolute top-4 left-4 bg-slate-950/80 backdrop-blur-md border border-[#ccff00]/40 text-[#ccff00] px-3 py-1 rounded-full text-[11px] font-bold">
-                    🎾 Especializado en Pádel
-                  </div>
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#0f1722] via-transparent to-transparent md:bg-gradient-to-r md:from-transparent md:to-[#0f1722]" />
                 </div>
 
-                {/* Card Body */}
-                <div className="p-6 sm:p-8 space-y-6">
+                {/* Pricing Details & Calculator */}
+                <div className="md:col-span-7 p-6 sm:p-8 space-y-6 flex flex-col justify-between">
                   <div>
                     <span className="text-[11px] font-bold text-slate-400 tracking-wider uppercase">
-                      Para complejos de Pádel
+                      Plan Completo para Complejos de Pádel
                     </span>
                     <div className="flex items-baseline gap-2 mt-1">
                       <span className="text-4xl sm:text-5xl font-black text-white tracking-tight">
-                        $15.000
+                        ${totalPrice.toLocaleString()}
                       </span>
                       <span className="text-xs font-bold text-[#ccff00]">ARS / mes</span>
                     </div>
-                    <p className="text-xs text-slate-300 font-semibold mt-1">
-                      Por mes por cancha
-                    </p>
-                    <p className="text-[11px] text-slate-500">
-                      Cristal panorámico, canchas techadas o al aire libre
+                    <p className="text-xs text-slate-400 mt-0.5">
+                      Equivale a <strong className="text-white">${pricePerCourt.toLocaleString()}</strong> por cancha por mes.
                     </p>
                   </div>
 
+                  {/* Number of Courts Selector */}
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-slate-300 block">
+                      ¿Cuántas canchas tiene tu complejo?
+                    </label>
+                    <div className="flex items-center gap-2">
+                      {[1, 2, 3, 4, 5, 6].map((num) => (
+                        <button
+                          key={num}
+                          onClick={() => setCourtsCount(num)}
+                          className={`h-10 w-10 rounded-xl text-xs font-extrabold transition border ${
+                            courtsCount === num
+                              ? "bg-[#ccff00] text-slate-950 border-[#ccff00] shadow-lg shadow-[#ccff00]/20 scale-105"
+                              : "bg-slate-900 text-slate-300 border-slate-800 hover:border-slate-700"
+                          }`}
+                        >
+                          {num}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Features List */}
                   <div className="space-y-2 text-xs text-slate-300 border-t border-slate-800 pt-4">
                     <div className="flex items-center gap-2">
                       <Check className="h-4 w-4 text-[#ccff00] flex-shrink-0" />
@@ -622,7 +620,7 @@ export default function Home() {
                     </div>
                     <div className="flex items-center gap-2">
                       <Check className="h-4 w-4 text-[#ccff00] flex-shrink-0" />
-                      <span>Link web personalizado para tu Instagram</span>
+                      <span>Web oficial personalizada en tu Instagram</span>
                     </div>
                   </div>
 
@@ -630,114 +628,11 @@ export default function Home() {
                     href={whatsappLink}
                     target="_blank"
                     rel="noreferrer"
-                    className="w-full flex items-center justify-center gap-2 bg-[#ccff00] hover:bg-[#bbf000] text-slate-950 font-black py-3.5 rounded-xl text-xs sm:text-sm transition shadow-lg shadow-[#ccff00]/20"
+                    className="w-full flex items-center justify-center gap-2 bg-[#ccff00] hover:bg-[#bbf000] text-slate-950 font-black py-3.5 rounded-xl text-xs sm:text-sm transition shadow-lg shadow-[#ccff00]/20 hover:scale-[1.02]"
                   >
                     <MessageCircle className="h-4 w-4" />
-                    <span>Contratar para mi Complejo</span>
+                    <span>Empezar con {courtsCount} {courtsCount === 1 ? "Cancha" : "Canchas"}</span>
                   </a>
-                </div>
-              </div>
-            </ScrollReveal>
-
-            {/* Card 2: Multideporte (Pádel, Tenis, Fútbol) */}
-            <ScrollReveal direction="right" delay={150}>
-              <div className="bg-[#0f1722] border-2 border-slate-800 hover:border-[#ccff00]/60 rounded-3xl overflow-hidden shadow-2xl transition duration-300 group flex flex-col justify-between">
-                {/* Visual Header */}
-                <div className="relative h-48 sm:h-52 w-full bg-gradient-to-t from-[#0f1722] via-[#0f1722]/50 to-transparent overflow-hidden">
-                  <img
-                    src="https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&w=800&q=80"
-                    alt="Club Multideporte"
-                    className="w-full h-full object-cover group-hover:scale-105 transition duration-500 opacity-80"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#0f1722] via-[#0f1722]/40 to-transparent" />
-                  <div className="absolute top-4 left-4 bg-slate-950/80 backdrop-blur-md border border-[#ccff00]/40 text-[#ccff00] px-3 py-1 rounded-full text-[11px] font-bold">
-                    ⚡ Club Multideporte
-                  </div>
-                </div>
-
-                {/* Card Body */}
-                <div className="p-6 sm:p-8 space-y-6">
-                  <div>
-                    <span className="text-[11px] font-bold text-slate-400 tracking-wider uppercase">
-                      Para predios de varios deportes
-                    </span>
-                    <div className="flex items-baseline gap-2 mt-1">
-                      <span className="text-4xl sm:text-5xl font-black text-white tracking-tight">
-                        $15.000
-                      </span>
-                      <span className="text-xs font-bold text-[#ccff00]">ARS / mes</span>
-                    </div>
-                    <p className="text-xs text-slate-300 font-semibold mt-1">
-                      Por mes por cancha
-                    </p>
-                    <p className="text-[11px] text-slate-500">
-                      Pádel, Tenis, Pickleball, Fútbol y más
-                    </p>
-                  </div>
-
-                  <div className="space-y-2 text-xs text-slate-300 border-t border-slate-800 pt-4">
-                    <div className="flex items-center gap-2">
-                      <Check className="h-4 w-4 text-[#ccff00] flex-shrink-0" />
-                      <span>Administración simultánea de múltiples deportes</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Check className="h-4 w-4 text-[#ccff00] flex-shrink-0" />
-                      <span>Tarifas diferenciadas día / noche con luz</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Check className="h-4 w-4 text-[#ccff00] flex-shrink-0" />
-                      <span>Bloqueo de horarios por torneos o lluvia</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Check className="h-4 w-4 text-[#ccff00] flex-shrink-0" />
-                      <span>Soporte prioritario y puesta en marcha en 24 hs</span>
-                    </div>
-                  </div>
-
-                  <a
-                    href={whatsappLink}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="w-full flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-800 text-white font-bold py-3.5 rounded-xl text-xs sm:text-sm border border-slate-700 hover:border-[#ccff00] transition"
-                  >
-                    <MessageCircle className="h-4 w-4 text-[#ccff00]" />
-                    <span>Consultar por Predio Multideporte</span>
-                  </a>
-                </div>
-              </div>
-            </ScrollReveal>
-          </div>
-
-          {/* Quick Calculator Box */}
-          <ScrollReveal direction="scale" delay={150}>
-            <div className="max-w-3xl mx-auto bg-[#0a0f15] border border-slate-800 rounded-2xl p-6 flex flex-col sm:flex-row items-center justify-between gap-6 shadow-xl">
-              <div className="space-y-1 text-center sm:text-left">
-                <div className="text-xs font-bold text-slate-300">
-                  Calculá tu costo exacto:
-                </div>
-                <div className="flex items-center gap-2 justify-center sm:justify-start pt-1">
-                  {[1, 2, 3, 4, 5, 6].map((num) => (
-                    <button
-                      key={num}
-                      onClick={() => setCourtsCount(num)}
-                      className={`h-9 w-9 rounded-lg text-xs font-bold transition border ${
-                        courtsCount === num
-                          ? "bg-[#ccff00] text-slate-950 border-[#ccff00] font-black scale-105"
-                          : "bg-slate-900 text-slate-300 border-slate-800 hover:border-slate-700"
-                      }`}
-                    >
-                      {num}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="text-center sm:text-right">
-                <div className="text-2xl font-black text-white">
-                  ${totalPrice.toLocaleString()} <span className="text-xs text-[#ccff00] font-bold">ARS / mes</span>
-                </div>
-                <div className="text-[11px] text-slate-400">
-                  {courtsCount} {courtsCount === 1 ? "cancha" : "canchas"} en total
                 </div>
               </div>
             </div>
