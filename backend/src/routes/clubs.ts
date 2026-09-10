@@ -34,7 +34,13 @@ router.get('/debug/schema', async (_req: Request, res: Response) => {
       courts: courtsCols.rows,
     });
   } catch (err: any) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({
+      error: err.message || String(err),
+      name: err.name,
+      code: err.code,
+      stack: err.stack,
+      errors: err.errors ? err.errors.map((e: any) => e.message || String(e)) : undefined
+    });
   }
 });
 
