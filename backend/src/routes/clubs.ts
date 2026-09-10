@@ -18,6 +18,9 @@ router.get('/', async (_req: Request, res: Response) => {
 
 // GET /api/clubs/debug/schema
 router.get('/debug/schema', async (_req: Request, res: Response) => {
+  const dbUrl = process.env.DATABASE_URL || '';
+  const sanitizedUrl = dbUrl ? dbUrl.replace(/:([^:@]+)@/, ':****@') : 'NOT_SET';
+  
   try {
     const clubsCols = await pgPool.query(
       "SELECT column_name, data_type FROM information_schema.columns WHERE table_name = 'clubs'"
@@ -29,17 +32,18 @@ router.get('/debug/schema', async (_req: Request, res: Response) => {
       "SELECT column_name, data_type FROM information_schema.columns WHERE table_name = 'courts'"
     );
     res.json({
+      db_url: sanitizedUrl,
       clubs: clubsCols.rows,
       users: usersCols.rows,
       courts: courtsCols.rows,
     });
   } catch (err: any) {
     res.status(500).json({
-      error: err.message || String(err),
-      name: err.name,
-      code: err.code,
-      stack: err.stack,
-      errors: err.errors ? err.errors.map((e: any) => e.message || String(e)) : undefined
+      db_url: sanitizedUrl,
+      error_name: err?.name,
+      error_message: err?.message,
+      error_code: err?.code,
+      all_errors: err?.errors ? err.errors.map((e: any) => ({ message: e?.message, code: e?.code, address: e?.address, port: e?.port })) : undefined,
     });
   }
 });
